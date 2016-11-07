@@ -19,6 +19,10 @@ initialHeading =
     270
 
 
+type alias Score =
+    Int
+
+
 type alias Point =
     { x : Int, y : Int }
 
@@ -45,23 +49,17 @@ type alias Ship =
 
 
 type alias Bullet =
-    { id : Int
-    , fired : Int
+    { fired : Int
     , pos : Point
     , velocity : Velocity
     }
 
 
 type alias Rock =
-    { id : Int
-    , pos : Point
+    { pos : Point
     , velocity : Velocity
     , radius : Int
     }
-
-
-type alias ElementId =
-    Int
 
 
 type alias Game =
@@ -69,6 +67,7 @@ type alias Game =
     , ship : Ship
     , bullets : List Bullet
     , rocks : List Rock
+    , score : Score
     }
 
 
@@ -89,15 +88,15 @@ init seed =
     let
         ( game, nextSeed ) =
             -- genGame 1 (Random.initialSeed 78641289470)
-            genGame 1 seed
+            genGame 1 0 seed
     in
         ( Model game 3 1 nextSeed
         , Cmd.none
         )
 
 
-genGame : Int -> Random.Seed -> ( Game, Random.Seed )
-genGame difficulty seed =
+genGame : Int -> Score -> Random.Seed -> ( Game, Random.Seed )
+genGame difficulty score seed =
     let
         ( rocks, nextSeed ) =
             initRocks difficulty seed
@@ -114,6 +113,7 @@ genGame difficulty seed =
                 }
           , bullets = []
           , rocks = rocks
+          , score = score
           }
         , nextSeed
         )
@@ -153,7 +153,7 @@ genVelocity : Int -> Random.Seed -> ( Velocity, Random.Seed )
 genVelocity difficulty seed =
     let
         ( rad, rs ) =
-            Random.step (Random.float 0.3 0.9) seed
+            Random.step (Random.float 0.6 0.9) seed
 
         ( theta, ts ) =
             Random.step (Random.float 0 pi) rs
@@ -165,7 +165,7 @@ genVelocity difficulty seed =
 
 
 genRock : Int -> Int -> ( List Rock, Random.Seed ) -> ( List Rock, Random.Seed )
-genRock difficulty id ( rocks, seed ) =
+genRock _ difficulty ( rocks, seed ) =
     let
         ( position, seed1 ) =
             genRockPos seed
@@ -173,12 +173,12 @@ genRock difficulty id ( rocks, seed ) =
         ( velocity, seed2 ) =
             genVelocity difficulty seed1
     in
-        ( (Rock id position velocity 30) :: rocks, seed2 )
+        ( (Rock position velocity 64) :: rocks, seed2 )
 
 
 initRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
 initRocks difficulty seed =
-    List.foldl (genRock difficulty) ( [], seed ) [0..9]
+    List.foldl (genRock difficulty) ( [], seed ) [0..5]
 
 
 
@@ -189,4 +189,5 @@ type Msg
     = Tick Time.Time
     | Downs Char
     | Ups Char
-    | NewGame
+    | WonGame
+    | LostGame

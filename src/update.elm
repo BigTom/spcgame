@@ -4,56 +4,74 @@ import Model
 import Task
 
 
-type alias CartesianVelocity =
-    { x : Float, y : Float }
-
-
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
-    case msg of
-        Model.NewGame ->
-            ( newGame model, Cmd.none )
+    if model.lives > 0 then
+        case msg of
+            Model.LostGame ->
+                ( lostGame model, Cmd.none )
 
-        Model.Tick _ ->
-            let
-                ( game, cmd ) =
-                    tick model.currentGame
-            in
-                ( { model | currentGame = game }, cmd )
+            Model.WonGame ->
+                ( wonGame model, Cmd.none )
 
-        Model.Downs charCode ->
-            let
-                game =
-                    model.currentGame
+            Model.Tick _ ->
+                let
+                    ( game, cmd ) =
+                        tick model.currentGame
+                in
+                    ( { model | currentGame = game }, cmd )
 
-                newGame =
-                    { game | ship = shipDowns game.ship charCode }
-            in
-                ( { model | currentGame = newGame }, Cmd.none )
+            Model.Downs charCode ->
+                let
+                    game =
+                        model.currentGame
 
-        Model.Ups charCode ->
-            let
-                game =
-                    model.currentGame
+                    newGame =
+                        { game | ship = shipDowns game.ship charCode }
+                in
+                    ( { model | currentGame = newGame }, Cmd.none )
 
-                newGame =
-                    { game | ship = shipUps game.ship charCode }
-            in
-                ( { model | currentGame = newGame }, Cmd.none )
+            Model.Ups charCode ->
+                let
+                    game =
+                        model.currentGame
+
+                    newGame =
+                        { game | ship = shipUps game.ship charCode }
+                in
+                    ( { model | currentGame = newGame }, Cmd.none )
+    else
+        ( model, Cmd.none )
 
 
-newGame : Model.Model -> Model.Model
-newGame model =
+lostGame : Model.Model -> Model.Model
+lostGame model =
+    let
+        difficulty =
+            1
+
+        ( game, nextSeed ) =
+            Model.genGame difficulty model.currentGame.score model.seed
+    in
+        { model
+            | currentGame = game
+            , lives = model.lives - 1
+            , difficulty = difficulty
+            , seed = nextSeed
+        }
+
+
+wonGame : Model.Model -> Model.Model
+wonGame model =
     let
         difficulty =
             model.difficulty + 1
 
         ( game, nextSeed ) =
-            Model.genGame difficulty model.seed
+            Model.genGame difficulty model.currentGame.score model.seed
     in
         { model
             | currentGame = game
-            , lives = model.lives - 1
             , difficulty = difficulty
             , seed = nextSeed
         }
@@ -65,7 +83,7 @@ tick game =
         ( newBullets, remainingBullets ) =
             updateBullets game
 
-        ( newNewBullets, newRocks ) =
+        ( newNewBullets, newRocks, score ) =
             bulletHits newBullets (updateRocks game.rocks)
 
         newGame =
@@ -74,14 +92,14 @@ tick game =
                 , ship = updateShip game.ship remainingBullets
                 , bullets = newNewBullets
                 , rocks = newRocks
+                , score = game.score + score
             }
 
         cmd =
-            if
-                shipImpact newGame.ship newGame.rocks
-                    || List.isEmpty newRocks
-            then
-                message Model.NewGame
+            if shipImpact newGame.ship newGame.rocks then
+                message Model.LostGame
+            else if List.isEmpty newRocks then
+                message Model.WonGame
             else
                 Cmd.none
     in
@@ -230,14 +248,6 @@ updateBullet bullet =
 fireBullets : Model.Game -> List Model.Bullet
 fireBullets { tick, ship, bullets } =
     let
-        id =
-            case List.head bullets of
-                Nothing ->
-                    0
-
-                Just bullet ->
-                    bullet.id + 1
-
         heading =
             degrees (toFloat ship.heading)
 
@@ -259,7 +269,7 @@ fireBullets { tick, ship, bullets } =
 
         newBullet : Model.Bullet
         newBullet =
-            { id = id, fired = tick, pos = position, velocity = bulletV }
+            { fired = tick, pos = position, velocity = bulletV }
     in
         newBullet :: bullets
 
@@ -283,7 +293,29 @@ bulletHit rocks bullet =
     List.map (\r -> ( bullet, r )) (List.filter (bulletRockCollision bullet) rocks)
 
 
-bulletHits : List Model.Bullet -> List Model.Rock -> ( List Model.Bullet, List Model.Rock )
+explodeRocks : Model.Rock -> ( Int, List Model.Rock )
+explodeRocks { pos, velocity, radius } =
+    let
+        ( r, t ) =
+            velocity
+
+        r_ =
+            r + 0.3
+
+        rad =
+            round (toFloat radius / 2.0)
+    in
+        if radius > 8 then
+            ( 1
+            , [ (Model.Rock { x = pos.x, y = pos.y } ( r_, t + 0.5 ) rad)
+              , (Model.Rock { x = pos.x, y = pos.y } ( r_, t - 0.5 ) rad)
+              ]
+            )
+        else
+            ( 2, [] )
+
+
+bulletHits : List Model.Bullet -> List Model.Rock -> ( List Model.Bullet, List Model.Rock, Model.Score )
 bulletHits bullets rocks =
     let
         hits =
@@ -292,13 +324,19 @@ bulletHits bullets rocks =
         ( bHits, rHits ) =
             List.unzip hits
 
+        ( scores, rockFragments ) =
+            List.unzip (List.map explodeRocks rHits)
+
+        score =
+            List.sum scores
+
         newBullets =
             List.filter (\b -> not (List.member b bHits)) bullets
 
         newRocks =
             List.filter (\r -> not (List.member r rHits)) rocks
     in
-        ( newBullets, newRocks )
+        ( newBullets, newRocks ++ (List.concat rockFragments), score )
 
 
 shipImpact : Model.Ship -> List Model.Rock -> Bool
