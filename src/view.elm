@@ -1,6 +1,19 @@
-module View exposing (..)
+module View exposing (view)
 
-import Model exposing (Model, Game, Point, Ship, Msg, Bullet, Rock, screenWidth, screenHeight)
+import Model
+    exposing
+        ( Model
+        , Round
+        , Point
+        , Ship
+        , Msg
+        , Bullet
+        , Rock
+        , screenWidth
+        , screenHeight
+        , midX
+        , midY
+        )
 import Html
 import Svg exposing (Svg)
 import Svg.Attributes exposing (..)
@@ -8,56 +21,78 @@ import Svg.Attributes exposing (..)
 
 view : Model -> Html.Html Msg
 view model =
-    if model.lives > 0 then
-        Html.div []
-            [ scene model
-            , Html.div [] [ Html.text (toString model.currentGame.ship) ]
-            ]
-    else
-        Html.div []
-            [ endScreen model ]
+    case model.state of
+        Model.Running currentRound ->
+            Html.div []
+                [ scene currentRound model.lives
+                , Html.div [] [ Html.text (toString currentRound.ship) ]
+                ]
+
+        Model.Start ->
+            Html.div [] [ startScreen ]
+
+        Model.Over score ->
+            Html.div [] [ endScreen score ]
 
 
-endScreen : Model -> Html.Html Msg
-endScreen { currentGame } =
-    Svg.svg
-        [ width (toString screenWidth)
-        , height (toString screenHeight)
-        , style ("margin-left: 20 px")
-        ]
-        ([ background ]
-            ++ showScore currentGame.score
-        )
-
-
-scene : Model -> Html.Html Msg
-scene { currentGame, lives } =
-    Svg.svg
-        [ width (toString screenWidth)
-        , height (toString screenHeight)
-        , style ("margin-left: 20 px")
-        ]
-        ([ background
-         , myShip currentGame.ship
-         ]
-            ++ List.map bullet currentGame.bullets
-            ++ List.map simpleRock currentGame.rocks
-            ++ remainingLives lives
-            ++ showScore currentGame.score
-        )
-
-
-showScore : Int -> List (Svg Msg)
-showScore sc =
-    [ Svg.text'
-        [ x (toString ((screenWidth * 2) // 3))
-        , y "32"
-        , style "font-family: sans-serif; font-size: 30pt"
-        , stroke "none"
-        , fill "white"
-        ]
-        [ Html.text (toString sc) ]
+svgScreen : Int -> Int -> List (Svg.Attribute msg)
+svgScreen x y =
+    [ width (toString x)
+    , height (toString y)
+    , style ("margin-left: 20 px")
     ]
+
+
+startScreen : Html.Html Msg
+startScreen =
+    Svg.svg
+        (svgScreen screenWidth screenHeight)
+        ([ background ]
+            ++ showMsg "Asteroids!" (Point midX (midY - 60)) 60
+            ++ showMsg "Press 'B' to start" (Point midX (midY + 32)) 20
+        )
+
+
+endScreen : Int -> Html.Html Msg
+endScreen score =
+    Svg.svg
+        (svgScreen screenWidth screenHeight)
+        ([ background ]
+            ++ showMsg "Game Over!" (Point midX (midY - 60)) 60
+            ++ showMsg (toString score) (Point midX (midY + 32)) 32
+            ++ showMsg "Press 'B' to start again" (Point midX (midY + 80)) 20
+        )
+
+
+scene : Round -> Int -> Html.Html Msg
+scene currentRound lives =
+    Svg.svg
+        (svgScreen screenWidth screenHeight)
+        ([ background
+         , myShip currentRound.ship
+         ]
+            ++ List.map bullet currentRound.bullets
+            ++ List.map simpleRock currentRound.rocks
+            ++ remainingLives lives
+            ++ showMsg (toString currentRound.score) (Point ((screenWidth * 2) // 3) 32) 32
+        )
+
+
+showMsg : String -> Model.Point -> Int -> List (Svg Msg)
+showMsg msg pos size =
+    let
+        styleText =
+            "font-family: sans-serif; font-size: " ++ (toString size) ++ "pt; text-anchor: middle"
+    in
+        [ Svg.text'
+            [ x (toString pos.x)
+            , y (toString pos.y)
+            , style styleText
+            , stroke "none"
+            , fill "white"
+            ]
+            [ Html.text msg ]
+        ]
 
 
 remainingLives : Int -> List (Svg Msg)
@@ -86,6 +121,7 @@ simpleRock rock =
         , cy (toString rock.pos.y)
         , r (toString rock.radius)
         , stroke "white"
+        , fillOpacity "0.0"
         ]
         []
 

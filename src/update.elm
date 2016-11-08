@@ -2,82 +2,107 @@ module Update exposing (..)
 
 import Model
 import Task
+import Random
 
 
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
-    if model.lives > 0 then
-        case msg of
-            Model.LostGame ->
-                ( lostGame model, Cmd.none )
+    case model.state of
+        Model.Running round ->
+            case msg of
+                Model.LostRound ->
+                    ( lostRound model round, Cmd.none )
 
-            Model.WonGame ->
-                ( wonGame model, Cmd.none )
+                Model.WonRound ->
+                    ( wonRound model round, Cmd.none )
 
-            Model.Tick _ ->
-                let
-                    ( game, cmd ) =
-                        tick model.currentGame
-                in
-                    ( { model | currentGame = game }, cmd )
+                Model.Tick _ ->
+                    let
+                        ( newRound, cmd ) =
+                            tick round
+                    in
+                        ( { model | state = Model.Running newRound }, cmd )
 
-            Model.Downs charCode ->
-                let
-                    game =
-                        model.currentGame
+                Model.Downs charCode ->
+                    let
+                        newRound =
+                            { round | ship = shipDowns round.ship charCode }
+                    in
+                        ( { model | state = Model.Running newRound }, Cmd.none )
 
-                    newGame =
-                        { game | ship = shipDowns game.ship charCode }
-                in
-                    ( { model | currentGame = newGame }, Cmd.none )
+                Model.Ups charCode ->
+                    let
+                        newRound =
+                            { round | ship = shipUps round.ship charCode }
+                    in
+                        ( { model | state = Model.Running newRound }, Cmd.none )
 
-            Model.Ups charCode ->
-                let
-                    game =
-                        model.currentGame
+                Model.NewRound seedSeed ->
+                    ( model, Cmd.none )
 
-                    newGame =
-                        { game | ship = shipUps game.ship charCode }
-                in
-                    ( { model | currentGame = newGame }, Cmd.none )
+        Model.Start ->
+            case msg of
+                Model.NewRound seedSeed ->
+                    ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
+
+                Model.Downs charCode ->
+                    if charCode == 'B' then
+                        Model.genGame model.seed
+                    else
+                        ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Model.Over _ ->
+            case msg of
+                Model.Downs charCode ->
+                    if charCode == 'B' then
+                        Model.genGame model.seed
+                    else
+                        ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+lostRound : Model.Model -> Model.Round -> Model.Model
+lostRound model currentRound =
+    if model.lives > 1 then
+        let
+            difficulty =
+                1
+
+            ( newRound, nextSeed ) =
+                Model.genRound difficulty currentRound.score model.seed
+        in
+            { model
+                | state = Model.Running newRound
+                , lives = model.lives - 1
+                , difficulty = difficulty
+                , seed = nextSeed
+            }
     else
-        ( model, Cmd.none )
+        { model | state = Model.Over currentRound.score }
 
 
-lostGame : Model.Model -> Model.Model
-lostGame model =
-    let
-        difficulty =
-            1
-
-        ( game, nextSeed ) =
-            Model.genGame difficulty model.currentGame.score model.seed
-    in
-        { model
-            | currentGame = game
-            , lives = model.lives - 1
-            , difficulty = difficulty
-            , seed = nextSeed
-        }
-
-
-wonGame : Model.Model -> Model.Model
-wonGame model =
+wonRound : Model.Model -> Model.Round -> Model.Model
+wonRound model currentRound =
     let
         difficulty =
             model.difficulty + 1
 
-        ( game, nextSeed ) =
-            Model.genGame difficulty model.currentGame.score model.seed
+        ( newRound, nextSeed ) =
+            Model.genRound difficulty currentRound.score model.seed
     in
         { model
-            | currentGame = game
+            | state = Model.Running newRound
             , difficulty = difficulty
             , seed = nextSeed
         }
 
 
-tick : Model.Game -> ( Model.Game, Cmd Model.Msg )
+tick : Model.Round -> ( Model.Round, Cmd Model.Msg )
 tick game =
     let
         ( newBullets, remainingBullets ) =
@@ -86,7 +111,7 @@ tick game =
         ( newNewBullets, newRocks, score ) =
             bulletHits newBullets (updateRocks game.rocks)
 
-        newGame =
+        newRound =
             { game
                 | tick = game.tick + 1
                 , ship = updateShip game.ship remainingBullets
@@ -96,14 +121,14 @@ tick game =
             }
 
         cmd =
-            if shipImpact newGame.ship newGame.rocks then
-                message Model.LostGame
+            if shipImpact newRound.ship newRound.rocks then
+                message Model.LostRound
             else if List.isEmpty newRocks then
-                message Model.WonGame
+                message Model.WonRound
             else
                 Cmd.none
     in
-        ( newGame
+        ( newRound
         , cmd
         )
 
@@ -162,7 +187,7 @@ updateShip ship remainingBullets =
     let
         newVelocity =
             if ship.accelerating then
-                accelerateShip ship 1.0
+                accelerateShip ship 0.5
             else
                 accelerateShip ship -0.0
 
@@ -216,13 +241,13 @@ updateRock rock =
     { rock | pos = move rock.pos rock.velocity }
 
 
-updateBullets : Model.Game -> ( List Model.Bullet, Int )
+updateBullets : Model.Round -> ( List Model.Bullet, Int )
 updateBullets game =
     let
         ( newBullets, remaingBullets ) =
             if game.ship.firing then
                 if game.ship.bullets > 0 then
-                    ( fireBullets game, game.ship.bullets - 1 )
+                    ( fireBullets game, game.ship.bullets - 3 )
                 else
                     ( game.bullets, 0 )
             else
@@ -245,7 +270,7 @@ updateBullet bullet =
     { bullet | pos = move bullet.pos bullet.velocity }
 
 
-fireBullets : Model.Game -> List Model.Bullet
+fireBullets : Model.Round -> List Model.Bullet
 fireBullets { tick, ship, bullets } =
     let
         heading =

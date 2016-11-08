@@ -21,14 +21,14 @@ testShip =
 all : Test
 all =
     describe "Update Tests"
-        [ describe "p2C Test Suite"
-            [ test "p2c 10, 90" <|
+        [ describe "v2p Test Suite"
+            [ test "v2p 10, 90" <|
                 \() ->
                     Expect.equal (Update.v2p ( 10, degrees 90 )) { x = 0, y = 10 }
-            , test "p2c 10, 0" <|
+            , test "v2p 10, 0" <|
                 \() ->
                     Expect.equal (Update.v2p ( 10, degrees 0 )) { x = 10, y = 0 }
-            , test "p2c 10, 10" <|
+            , test "v2p 10, 10" <|
                 \() ->
                     Expect.equal (Update.v2p ( 10, degrees 45 )) { x = 7, y = 7 }
             ]
@@ -38,12 +38,10 @@ all =
                     Expect.true "true"
                         (Update.shipImpact testShip
                             [ Model.Rock
-                                0
                                 { x = 131, y = 100 }
                                 ( 0, 0 )
                                 15
                             , Model.Rock
-                                1
                                 { x = 129, y = 100 }
                                 ( 0, 0 )
                                 15
@@ -52,6 +50,6 @@ all =
             , test "miss" <|
                 \() ->
                     Expect.false "false"
-                        (Update.shipImpact testShip [ Model.Rock 1 { x = 131, y = 100 } ( 0, 0 ) 15 ])
+                        (Update.shipImpact testShip [ Model.Rock { x = 131, y = 100 } ( 0, 0 ) 15 ])
             ]
         ]

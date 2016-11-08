@@ -14,6 +14,16 @@ screenHeight =
     600
 
 
+midX : Int
+midX =
+    (screenWidth // 2)
+
+
+midY : Int
+midY =
+    (screenHeight // 2)
+
+
 initialHeading : Int
 initialHeading =
     270
@@ -35,6 +45,12 @@ type Rotating
     = Not
     | Clockwise
     | Anticlockwise
+
+
+type GameState
+    = Start
+    | Running Round
+    | Over Int
 
 
 type alias Ship =
@@ -62,7 +78,7 @@ type alias Rock =
     }
 
 
-type alias Game =
+type alias Round =
     { tick : Int
     , ship : Ship
     , bullets : List Bullet
@@ -72,7 +88,7 @@ type alias Game =
 
 
 type alias Model =
-    { currentGame : Game
+    { state : GameState
     , lives : Int
     , difficulty : Int
     , seed : Random.Seed
@@ -85,32 +101,40 @@ type alias Model =
 
 init : Random.Seed -> ( Model, Cmd Msg )
 init seed =
+    ( Model Start 3 1 (Random.initialSeed 0)
+    , Random.generate NewRound (Random.int 0 Random.maxInt)
+    )
+
+
+startingShip : Ship
+startingShip =
+    { pos = { x = midX, y = midY }
+    , velocity = ( 0, degrees (toFloat initialHeading) )
+    , heading = initialHeading
+    , rotating = Not
+    , accelerating = False
+    , firing = False
+    , bullets = 15
+    }
+
+
+genGame : Random.Seed -> ( Model, Cmd Msg )
+genGame seed =
     let
-        ( game, nextSeed ) =
-            -- genGame 1 (Random.initialSeed 78641289470)
-            genGame 1 0 seed
+        ( round, nextSeed ) =
+            genRound 1 0 seed
     in
-        ( Model game 3 1 nextSeed
-        , Cmd.none
-        )
+        ( Model (Running round) 3 1 nextSeed, Cmd.none )
 
 
-genGame : Int -> Score -> Random.Seed -> ( Game, Random.Seed )
-genGame difficulty score seed =
+genRound : Int -> Score -> Random.Seed -> ( Round, Random.Seed )
+genRound difficulty score seed =
     let
         ( rocks, nextSeed ) =
             initRocks difficulty seed
     in
         ( { tick = 0
-          , ship =
-                { pos = { x = screenWidth // 2, y = screenHeight // 2 }
-                , velocity = ( 0, degrees (toFloat initialHeading) )
-                , heading = initialHeading
-                , rotating = Not
-                , accelerating = False
-                , firing = False
-                , bullets = 6
-                }
+          , ship = startingShip
           , bullets = []
           , rocks = rocks
           , score = score
@@ -189,5 +213,6 @@ type Msg
     = Tick Time.Time
     | Downs Char
     | Ups Char
-    | WonGame
-    | LostGame
+    | WonRound
+    | LostRound
+    | NewRound Int
