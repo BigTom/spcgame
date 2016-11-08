@@ -1,22 +1,17 @@
 module App exposing (..)
 
 import Html.App as App
-import Model exposing (init)
-import Update exposing (update)
-import View exposing (view)
-import Subscriptions exposing (subscriptions)
-import Random
+import Model
+import Update
+import View
+import Subscriptions
 
 
 main : Program Never
 main =
-    let
-        seed =
-            Random.initialSeed 67246199
-    in
-        App.program
-            { init = (init seed)
-            , update = update
-            , view = view
-            , subscriptions = subscriptions
-            }
+    App.program
+        { init = Model.init
+        , update = Update.update
+        , view = View.view
+        , subscriptions = Subscriptions.subscriptions
+        }

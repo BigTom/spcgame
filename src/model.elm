@@ -99,8 +99,8 @@ type alias Model =
 -- init
 
 
-init : Random.Seed -> ( Model, Cmd Msg )
-init seed =
+init : ( Model, Cmd Msg )
+init =
     ( Model Start 3 1 (Random.initialSeed 0)
     , Random.generate NewRound (Random.int 0 Random.maxInt)
     )

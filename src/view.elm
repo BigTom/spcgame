@@ -1,25 +1,12 @@
 module View exposing (view)
 
 import Model
-    exposing
-        ( Model
-        , Round
-        , Point
-        , Ship
-        , Msg
-        , Bullet
-        , Rock
-        , screenWidth
-        , screenHeight
-        , midX
-        , midY
-        )
 import Html
 import Svg exposing (Svg)
 import Svg.Attributes exposing (..)
 
 
-view : Model -> Html.Html Msg
+view : Model.Model -> Html.Html Model.Msg
 view model =
     case model.state of
         Model.Running currentRound ->
@@ -43,42 +30,42 @@ svgScreen x y =
     ]
 
 
-startScreen : Html.Html Msg
+startScreen : Html.Html Model.Msg
 startScreen =
     Svg.svg
-        (svgScreen screenWidth screenHeight)
+        (svgScreen Model.screenWidth Model.screenHeight)
         ([ background ]
-            ++ showMsg "Asteroids!" (Point midX (midY - 60)) 60
-            ++ showMsg "Press 'B' to start" (Point midX (midY + 32)) 20
+            ++ showMsg "Asteroids!" (Model.Point Model.midX (Model.midY - 60)) 60
+            ++ showMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 20
         )
 
 
-endScreen : Int -> Html.Html Msg
+endScreen : Int -> Html.Html Model.Msg
 endScreen score =
     Svg.svg
-        (svgScreen screenWidth screenHeight)
+        (svgScreen Model.screenWidth Model.screenHeight)
         ([ background ]
-            ++ showMsg "Game Over!" (Point midX (midY - 60)) 60
-            ++ showMsg (toString score) (Point midX (midY + 32)) 32
-            ++ showMsg "Press 'B' to start again" (Point midX (midY + 80)) 20
+            ++ showMsg "Game Over!" (Model.Point Model.midX (Model.midY - 60)) 60
+            ++ showMsg (toString score) (Model.Point Model.midX (Model.midY + 32)) 32
+            ++ showMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 80)) 20
         )
 
 
-scene : Round -> Int -> Html.Html Msg
+scene : Model.Round -> Int -> Html.Html Model.Msg
 scene currentRound lives =
     Svg.svg
-        (svgScreen screenWidth screenHeight)
+        (svgScreen Model.screenWidth Model.screenHeight)
         ([ background
          , myShip currentRound.ship
          ]
             ++ List.map bullet currentRound.bullets
             ++ List.map simpleRock currentRound.rocks
             ++ remainingLives lives
-            ++ showMsg (toString currentRound.score) (Point ((screenWidth * 2) // 3) 32) 32
+            ++ showMsg (toString currentRound.score) (Model.Point ((Model.screenWidth * 2) // 3) 32) 32
         )
 
 
-showMsg : String -> Model.Point -> Int -> List (Svg Msg)
+showMsg : String -> Model.Point -> Int -> List (Svg Model.Msg)
 showMsg msg pos size =
     let
         styleText =
@@ -95,7 +82,7 @@ showMsg msg pos size =
         ]
 
 
-remainingLives : Int -> List (Svg Msg)
+remainingLives : Int -> List (Svg Model.Msg)
 remainingLives lives =
     let
         lifePos =
@@ -104,17 +91,17 @@ remainingLives lives =
         List.map (aShip 270) lifePos
 
 
-background : Svg Msg
+background : Svg Model.Msg
 background =
     Svg.rect
-        [ width (toString screenWidth)
-        , height (toString screenHeight)
+        [ width (toString Model.screenWidth)
+        , height (toString Model.screenHeight)
         , fill "black"
         ]
         []
 
 
-simpleRock : Rock -> Svg Msg
+simpleRock : Model.Rock -> Svg Model.Msg
 simpleRock rock =
     Svg.circle
         [ cx (toString rock.pos.x)
@@ -126,7 +113,7 @@ simpleRock rock =
         []
 
 
-bullet : Bullet -> Svg Msg
+bullet : Model.Bullet -> Svg Model.Msg
 bullet bullet =
     Svg.circle
         [ cx (toString bullet.pos.x)
@@ -138,12 +125,12 @@ bullet bullet =
         []
 
 
-myShip : Ship -> Svg Msg
+myShip : Model.Ship -> Svg Model.Msg
 myShip ship =
     aShip ship.heading ship.pos
 
 
-aShip : Int -> Point -> Svg Msg
+aShip : Int -> Model.Point -> Svg Model.Msg
 aShip heading { x, y } =
     let
         pts =

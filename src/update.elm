@@ -8,62 +8,82 @@ import Random
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
     case model.state of
-        Model.Running round ->
-            case msg of
-                Model.LostRound ->
-                    ( lostRound model round, Cmd.none )
-
-                Model.WonRound ->
-                    ( wonRound model round, Cmd.none )
-
-                Model.Tick _ ->
-                    let
-                        ( newRound, cmd ) =
-                            tick round
-                    in
-                        ( { model | state = Model.Running newRound }, cmd )
-
-                Model.Downs charCode ->
-                    let
-                        newRound =
-                            { round | ship = shipDowns round.ship charCode }
-                    in
-                        ( { model | state = Model.Running newRound }, Cmd.none )
-
-                Model.Ups charCode ->
-                    let
-                        newRound =
-                            { round | ship = shipUps round.ship charCode }
-                    in
-                        ( { model | state = Model.Running newRound }, Cmd.none )
-
-                Model.NewRound seedSeed ->
-                    ( model, Cmd.none )
-
         Model.Start ->
-            case msg of
-                Model.NewRound seedSeed ->
-                    ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
+            updateStart model msg
 
-                Model.Downs charCode ->
-                    if charCode == 'B' then
-                        Model.genGame model.seed
-                    else
-                        ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+        Model.Running round ->
+            updateRunning model round msg
 
         Model.Over _ ->
-            case msg of
-                Model.Downs charCode ->
-                    if charCode == 'B' then
-                        Model.genGame model.seed
-                    else
-                        ( model, Cmd.none )
+            updateOver model msg
 
-                _ ->
-                    ( model, Cmd.none )
+
+updateStart : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+updateStart model msg =
+    case msg of
+        Model.NewRound seedSeed ->
+            ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
+
+        Model.Downs charCode ->
+            newGame charCode model
+
+        _ ->
+            ( model, Cmd.none )
+
+
+updateRunning : Model.Model -> Model.Round -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+updateRunning model round msg =
+    case msg of
+        Model.LostRound ->
+            ( lostRound model round, Cmd.none )
+
+        Model.WonRound ->
+            ( wonRound model round, Cmd.none )
+
+        Model.Tick _ ->
+            let
+                ( newRound, cmd ) =
+                    tick round
+            in
+                ( { model | state = Model.Running newRound }, cmd )
+
+        Model.Downs charCode ->
+            let
+                newRound =
+                    { round | ship = shipDowns round.ship charCode }
+            in
+                ( { model | state = Model.Running newRound }, Cmd.none )
+
+        Model.Ups charCode ->
+            let
+                newRound =
+                    { round | ship = shipUps round.ship charCode }
+            in
+                ( { model | state = Model.Running newRound }, Cmd.none )
+
+        Model.NewRound seedSeed ->
+            ( model, Cmd.none )
+
+
+updateOver : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+updateOver model msg =
+    case msg of
+        Model.NewRound seedSeed ->
+            ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
+
+        Model.Downs charCode ->
+            newGame charCode model
+
+        _ ->
+            ( model, Cmd.none )
+
+
+newGame : Char -> Model.Model -> ( Model.Model, Cmd Model.Msg )
+newGame charCode model =
+    if charCode == 'B' then
+        Model.genGame model.seed
+    else
+        ( model, Cmd.none )
 
 
 lostRound : Model.Model -> Model.Round -> Model.Model
