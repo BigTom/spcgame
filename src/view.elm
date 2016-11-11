@@ -59,7 +59,7 @@ scene currentRound lives =
          , myShip currentRound.ship
          ]
             ++ List.map bullet currentRound.bullets
-            ++ List.map simpleRock currentRound.rocks
+            ++ List.map aRock currentRound.rocks
             ++ remainingLives lives
             ++ showMsg (toString currentRound.score) (Model.Point ((Model.screenWidth * 2) // 3) 32) 32
         )
@@ -125,6 +125,43 @@ bullet bullet =
         []
 
 
+aRock : Model.Rock -> Svg Model.Msg
+aRock { pos, radius, angle } =
+    let
+        cPts =
+            [ ( 0.1, 1 ), ( 0.4, 0.7 ), ( 0.4, 0.6 ), ( 0.5, 0.6 ), ( 0.6, 0.5 ), ( 0.6, 0.4 ), ( 0.5, 0.3 ), ( 0.6, 0.2 ), ( 0.9, 0.2 ), ( 1, 0.1 ), ( 1, -0.2 ), ( 0.9, -0.3 ), ( 0.8, -0.3 ), ( 0.5, -0.6 ), ( 0.5, -0.7 ), ( 0.4, -0.6 ), ( 0.3, -0.7 ), ( 0.2, -0.9 ), ( 0.2, -1 ), ( 0.1, -1 ), ( -0.1, -0.9 ), ( -0.2, -0.8 ), ( -0.2, -0.7 ), ( -0.3, -0.6 ), ( -0.3, -0.6 ), ( -0.4, -0.7 ), ( -0.5, -0.5 ), ( -0.7, -0.4 ), ( -0.7, -0.3 ), ( -0.8, -0.2 ), ( -0.9, -0.1 ), ( -1, 0.1 ), ( -1, 0.2 ), ( -0.8, 0.4 ), ( -0.7, 0.5 ), ( -0.6, 0.5 ), ( -0.5, 0.4 ), ( -0.5, 0.3 ), ( -0.4, 0.2 ), ( -0.3, 0.3 ), ( -0.3, 0.4 ), ( -0.2, 0.5 ), ( -0.2, 0.6 ), ( -0.3, 0.7 ), ( -0.2, 0.8 ), ( -0.2, 0.9 ), ( -0.1, 1 ) ]
+
+        pts =
+            List.foldl (++) "" (List.intersperse "," (List.map (coords radius) cPts))
+    in
+        Svg.polygon
+            [ points pts
+            , stroke "white"
+            , fillOpacity "0.0"
+            , transform
+                ("rotate("
+                    ++ (toString angle)
+                    ++ ","
+                    ++ (toString pos.x)
+                    ++ ","
+                    ++ (toString pos.y)
+                    ++ ")"
+                    ++ " "
+                    ++ "translate("
+                    ++ (toString pos.x)
+                    ++ ","
+                    ++ (toString pos.y)
+                    ++ ")"
+                )
+            ]
+            []
+
+
+coords : Int -> ( Float, Float ) -> String
+coords s ( x, y ) =
+    toString (x * toFloat s) ++ " " ++ toString (y * toFloat s)
+
+
 myShip : Model.Ship -> Svg Model.Msg
 myShip ship =
     aShip ship.heading ship.pos
@@ -160,7 +197,6 @@ aShip heading { x, y } =
     in
         Svg.polygon
             [ points pts
-              -- , fill "white"
             , stroke "white"
             , transform
                 ("rotate("

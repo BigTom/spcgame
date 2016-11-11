@@ -258,7 +258,7 @@ move { x, y } v =
 
 updateRock : Model.Rock -> Model.Rock
 updateRock rock =
-    { rock | pos = move rock.pos rock.velocity }
+    { rock | pos = move rock.pos rock.velocity, angle = rock.angle + rock.rotation }
 
 
 updateBullets : Model.Round -> ( List Model.Bullet, Int )
@@ -339,7 +339,7 @@ bulletHit rocks bullet =
 
 
 explodeRocks : Model.Rock -> ( Int, List Model.Rock )
-explodeRocks { pos, velocity, radius } =
+explodeRocks { pos, velocity, radius, rotation } =
     let
         ( r, t ) =
             velocity
@@ -352,8 +352,8 @@ explodeRocks { pos, velocity, radius } =
     in
         if radius > 8 then
             ( 1
-            , [ (Model.Rock { x = pos.x, y = pos.y } ( r_, t + 0.5 ) rad)
-              , (Model.Rock { x = pos.x, y = pos.y } ( r_, t - 0.5 ) rad)
+            , [ Model.Rock { x = pos.x, y = pos.y } ( r_, t + 0.5 ) rad (rotation * 2) 0
+              , Model.Rock { x = pos.x, y = pos.y } ( r_, t - 0.5 ) rad (rotation * 2) 0
               ]
             )
         else
@@ -364,7 +364,9 @@ bulletHits : List Model.Bullet -> List Model.Rock -> ( List Model.Bullet, List M
 bulletHits bullets rocks =
     let
         hits =
-            List.concat (List.map (bulletHit rocks) bullets)
+            Debug.log "hits"
+                List.concat
+                (List.map (bulletHit rocks) bullets)
 
         ( bHits, rHits ) =
             List.unzip hits

@@ -75,6 +75,8 @@ type alias Rock =
     { pos : Point
     , velocity : Velocity
     , radius : Int
+    , rotation : Int
+    , angle : Int
     }
 
 
@@ -96,7 +98,7 @@ type alias Model =
 
 
 
--- init
+-- INIT
 
 
 init : ( Model, Cmd Msg )
@@ -197,7 +199,7 @@ genRock _ difficulty ( rocks, seed ) =
         ( velocity, seed2 ) =
             genVelocity difficulty seed1
     in
-        ( (Rock position velocity 64) :: rocks, seed2 )
+        ( (Rock position velocity 64 1 0) :: rocks, seed2 )
 
 
 initRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
