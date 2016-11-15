@@ -392,5 +392,5 @@ shipImpact ship rocks =
 
 
 message : msg -> Cmd msg
-message x =
-    Task.perform identity identity (Task.succeed x)
+message msg =
+    Task.perform identity (Task.succeed msg)

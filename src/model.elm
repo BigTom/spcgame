@@ -198,13 +198,28 @@ genRock _ difficulty ( rocks, seed ) =
 
         ( velocity, seed2 ) =
             genVelocity difficulty seed1
+
+        ( spin, seed3 ) =
+            spinDir seed2
     in
-        ( (Rock position velocity 64 1 0) :: rocks, seed2 )
+        ( (Rock position velocity 64 spin 0) :: rocks, seed3 )
 
 
 initRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
 initRocks difficulty seed =
-    List.foldl (genRock difficulty) ( [], seed ) [0..5]
+    List.foldl (genRock difficulty) ( [], seed ) (List.range 0 5)
+
+
+spinDir : Random.Seed -> ( Int, Random.Seed )
+spinDir seed =
+    let
+        ( b, s ) =
+            Random.step Random.bool seed
+    in
+        if b then
+            ( 1, s )
+        else
+            ( -1, s )
 
 
 

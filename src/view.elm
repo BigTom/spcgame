@@ -71,7 +71,7 @@ showMsg msg pos size =
         styleText =
             "font-family: sans-serif; font-size: " ++ (toString size) ++ "pt; text-anchor: middle"
     in
-        [ Svg.text'
+        [ Svg.text_
             [ x (toString pos.x)
             , y (toString pos.y)
             , style styleText
@@ -86,7 +86,7 @@ remainingLives : Int -> List (Svg Model.Msg)
 remainingLives lives =
     let
         lifePos =
-            List.map (\x -> { x = 32 * x, y = 20 }) [1..lives]
+            List.map (\x -> { x = 32 * x, y = 20 }) (List.range 1 lives)
     in
         List.map (aShip 270) lifePos
 
