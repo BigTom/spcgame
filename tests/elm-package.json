@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
-    "summary": "Sample Elm Test",
-    "repository": "https://github.com/user/project.git",
+    "summary": "Asteroids in Elm as a learning exercise",
+    "repository": "https://github.com/BigTom/spcgame.git",
     "license": "BSD-3-Clause",
     "source-directories": [
         ".",
@@ -17,8 +17,7 @@
         "elm-lang/mouse": "1.0.0 <= v < 2.0.0",
         "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0",
-        "elm-lang/window": "1.0.0 <= v < 2.0.0",
         "krisajenkins/elm-exts": "26.1.0 <= v < 26.0.0"
     },
-    "elm-version": "0.17.0 <= v < 0.18.0"
+    "elm-version": "0.18.0 <= v < 0.19.0"
 }

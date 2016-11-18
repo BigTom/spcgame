@@ -6,12 +6,26 @@ import Svg exposing (Svg)
 import Svg.Attributes exposing (..)
 
 
+type alias Coords =
+    ( Float, Float )
+
+
+rockPts : List Coords
+rockPts =
+    [ ( 0.1, 1 ), ( 0.4, 0.7 ), ( 0.4, 0.6 ), ( 0.5, 0.6 ), ( 0.6, 0.5 ), ( 0.6, 0.4 ), ( 0.5, 0.3 ), ( 0.6, 0.2 ), ( 0.9, 0.2 ), ( 1, 0.1 ), ( 1, -0.2 ), ( 0.9, -0.3 ), ( 0.8, -0.3 ), ( 0.5, -0.6 ), ( 0.5, -0.7 ), ( 0.4, -0.6 ), ( 0.3, -0.7 ), ( 0.2, -0.9 ), ( 0.2, -1 ), ( 0.1, -1 ), ( -0.1, -0.9 ), ( -0.2, -0.8 ), ( -0.2, -0.7 ), ( -0.3, -0.6 ), ( -0.3, -0.6 ), ( -0.4, -0.7 ), ( -0.5, -0.5 ), ( -0.7, -0.4 ), ( -0.7, -0.3 ), ( -0.8, -0.2 ), ( -0.9, -0.1 ), ( -1, 0.1 ), ( -1, 0.2 ), ( -0.8, 0.4 ), ( -0.7, 0.5 ), ( -0.6, 0.5 ), ( -0.5, 0.4 ), ( -0.5, 0.3 ), ( -0.4, 0.2 ), ( -0.3, 0.3 ), ( -0.3, 0.4 ), ( -0.2, 0.5 ), ( -0.2, 0.6 ), ( -0.3, 0.7 ), ( -0.2, 0.8 ), ( -0.2, 0.9 ), ( -0.1, 1 ) ]
+
+
+shipPts : List Coords
+shipPts =
+    [ ( -1.5, -1 ), ( 1.5, 0 ), ( -1.5, 1 ), ( -1, 0.6 ), ( -1, -0.6 ) ]
+
+
 view : Model.Model -> Html.Html Model.Msg
 view model =
     case model.state of
         Model.Running currentRound ->
             Html.div []
-                [ scene currentRound model.lives
+                [ runningScene currentRound model.lives
                 , Html.div [] [ Html.text (toString currentRound.ship) ]
                 ]
 
@@ -22,51 +36,60 @@ view model =
             Html.div [] [ endScreen score ]
 
 
-svgScreen : Int -> Int -> List (Svg.Attribute msg)
-svgScreen x y =
-    [ width (toString x)
-    , height (toString y)
-    , style ("margin-left: 20 px")
-    ]
-
-
 startScreen : Html.Html Model.Msg
 startScreen =
     Svg.svg
-        (svgScreen Model.screenWidth Model.screenHeight)
-        ([ background ]
-            ++ showMsg "Asteroids!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ showMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 20
+        (svgArea Model.screenWidth Model.screenHeight)
+        ([ drawBackground ]
+            ++ drawMsg "Asteroids!" (Model.Point Model.midX (Model.midY - 60)) 60
+            ++ drawMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 20
         )
 
 
 endScreen : Int -> Html.Html Model.Msg
 endScreen score =
     Svg.svg
-        (svgScreen Model.screenWidth Model.screenHeight)
-        ([ background ]
-            ++ showMsg "Game Over!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ showMsg (toString score) (Model.Point Model.midX (Model.midY + 32)) 32
-            ++ showMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 80)) 20
+        (svgArea Model.screenWidth Model.screenHeight)
+        ([ drawBackground ]
+            ++ drawMsg "Game Over!" (Model.Point Model.midX (Model.midY - 60)) 60
+            ++ drawMsg (toString score) (Model.Point Model.midX (Model.midY + 32)) 32
+            ++ drawMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 80)) 20
         )
 
 
-scene : Model.Round -> Int -> Html.Html Model.Msg
-scene currentRound lives =
+runningScene : Model.Round -> Int -> Html.Html Model.Msg
+runningScene currentRound lives =
     Svg.svg
-        (svgScreen Model.screenWidth Model.screenHeight)
-        ([ background
-         , myShip currentRound.ship
+        (svgArea Model.screenWidth Model.screenHeight)
+        ([ drawBackground
+         , drawShip currentRound.ship
          ]
-            ++ List.map bullet currentRound.bullets
-            ++ List.map aRock currentRound.rocks
+            ++ List.map drawBullet currentRound.bullets
+            ++ List.map drawRock currentRound.rocks
             ++ remainingLives lives
-            ++ showMsg (toString currentRound.score) (Model.Point ((Model.screenWidth * 2) // 3) 32) 32
+            ++ drawMsg (toString currentRound.score) (Model.Point ((Model.screenWidth * 2) // 3) 32) 32
         )
 
 
-showMsg : String -> Model.Point -> Int -> List (Svg Model.Msg)
-showMsg msg pos size =
+svgArea : Int -> Int -> List (Svg.Attribute msg)
+svgArea x y =
+    [ width (toString x)
+    , height (toString y)
+    , style ("margin-left: 20 px")
+    ]
+
+
+remainingLives : Int -> List (Svg Model.Msg)
+remainingLives lives =
+    let
+        drawLifePos =
+            List.map (\x -> { x = 32 * x, y = 20 }) (List.range 1 lives)
+    in
+        List.map drawLife drawLifePos
+
+
+drawMsg : String -> Model.Point -> Int -> List (Svg Model.Msg)
+drawMsg msg pos size =
     let
         styleText =
             "font-family: sans-serif; font-size: " ++ (toString size) ++ "pt; text-anchor: middle"
@@ -82,17 +105,8 @@ showMsg msg pos size =
         ]
 
 
-remainingLives : Int -> List (Svg Model.Msg)
-remainingLives lives =
-    let
-        lifePos =
-            List.map (\x -> { x = 32 * x, y = 20 }) (List.range 1 lives)
-    in
-        List.map (aShip 270) lifePos
-
-
-background : Svg Model.Msg
-background =
+drawBackground : Svg Model.Msg
+drawBackground =
     Svg.rect
         [ width (toString Model.screenWidth)
         , height (toString Model.screenHeight)
@@ -101,23 +115,11 @@ background =
         []
 
 
-simpleRock : Model.Rock -> Svg Model.Msg
-simpleRock rock =
+drawBullet : Model.Bullet -> Svg Model.Msg
+drawBullet drawBullet =
     Svg.circle
-        [ cx (toString rock.pos.x)
-        , cy (toString rock.pos.y)
-        , r (toString rock.radius)
-        , stroke "white"
-        , fillOpacity "0.0"
-        ]
-        []
-
-
-bullet : Model.Bullet -> Svg Model.Msg
-bullet bullet =
-    Svg.circle
-        [ cx (toString bullet.pos.x)
-        , cy (toString bullet.pos.y)
+        [ cx (toString drawBullet.pos.x)
+        , cy (toString drawBullet.pos.y)
         , r "1"
         , stroke "red"
         , fill "red"
@@ -125,87 +127,46 @@ bullet bullet =
         []
 
 
-aRock : Model.Rock -> Svg Model.Msg
-aRock { pos, radius, angle } =
-    let
-        cPts =
-            [ ( 0.1, 1 ), ( 0.4, 0.7 ), ( 0.4, 0.6 ), ( 0.5, 0.6 ), ( 0.6, 0.5 ), ( 0.6, 0.4 ), ( 0.5, 0.3 ), ( 0.6, 0.2 ), ( 0.9, 0.2 ), ( 1, 0.1 ), ( 1, -0.2 ), ( 0.9, -0.3 ), ( 0.8, -0.3 ), ( 0.5, -0.6 ), ( 0.5, -0.7 ), ( 0.4, -0.6 ), ( 0.3, -0.7 ), ( 0.2, -0.9 ), ( 0.2, -1 ), ( 0.1, -1 ), ( -0.1, -0.9 ), ( -0.2, -0.8 ), ( -0.2, -0.7 ), ( -0.3, -0.6 ), ( -0.3, -0.6 ), ( -0.4, -0.7 ), ( -0.5, -0.5 ), ( -0.7, -0.4 ), ( -0.7, -0.3 ), ( -0.8, -0.2 ), ( -0.9, -0.1 ), ( -1, 0.1 ), ( -1, 0.2 ), ( -0.8, 0.4 ), ( -0.7, 0.5 ), ( -0.6, 0.5 ), ( -0.5, 0.4 ), ( -0.5, 0.3 ), ( -0.4, 0.2 ), ( -0.3, 0.3 ), ( -0.3, 0.4 ), ( -0.2, 0.5 ), ( -0.2, 0.6 ), ( -0.3, 0.7 ), ( -0.2, 0.8 ), ( -0.2, 0.9 ), ( -0.1, 1 ) ]
-
-        pts =
-            List.foldl (++) "" (List.intersperse "," (List.map (coords radius) cPts))
-    in
-        Svg.polygon
-            [ points pts
-            , stroke "white"
-            , fillOpacity "0.0"
-            , transform
-                ("rotate("
-                    ++ (toString angle)
-                    ++ ","
-                    ++ (toString pos.x)
-                    ++ ","
-                    ++ (toString pos.y)
-                    ++ ")"
-                    ++ " "
-                    ++ "translate("
-                    ++ (toString pos.x)
-                    ++ ","
-                    ++ (toString pos.y)
-                    ++ ")"
-                )
-            ]
-            []
-
-
-coords : Int -> ( Float, Float ) -> String
-coords s ( x, y ) =
+scaleCoords : Int -> Coords -> String
+scaleCoords s ( x, y ) =
     toString (x * toFloat s) ++ " " ++ toString (y * toFloat s)
 
 
-myShip : Model.Ship -> Svg Model.Msg
-myShip ship =
-    aShip ship.heading ship.pos
+drawObject : Model.Point -> Int -> Int -> List Coords -> Svg Model.Msg
+drawObject pos scale angle rawPts =
+    Svg.polygon
+        [ points (List.foldl (++) "" (List.intersperse "," (List.map (scaleCoords scale) rawPts)))
+        , stroke "white"
+        , fillOpacity "0.0"
+        , transform
+            ("rotate("
+                ++ (toString angle)
+                ++ ","
+                ++ (toString pos.x)
+                ++ ","
+                ++ (toString pos.y)
+                ++ ")"
+                ++ " "
+                ++ "translate("
+                ++ (toString pos.x)
+                ++ ","
+                ++ (toString pos.y)
+                ++ ")"
+            )
+        ]
+        []
 
 
-aShip : Int -> Model.Point -> Svg Model.Msg
-aShip heading { x, y } =
-    let
-        pts =
-            toString (x - 15)
-                ++ " "
-                ++ toString (y - 10)
-                ++ ", "
-                ++ toString
-                    (x + 15)
-                ++ " "
-                ++ toString y
-                ++ ", "
-                ++ toString
-                    (x - 15)
-                ++ " "
-                ++ toString (y + 10)
-                ++ ", "
-                ++ toString
-                    (x - 10)
-                ++ " "
-                ++ toString (y + 6)
-                ++ ", "
-                ++ toString
-                    (x - 10)
-                ++ " "
-                ++ toString (y - 6)
-    in
-        Svg.polygon
-            [ points pts
-            , stroke "white"
-            , transform
-                ("rotate("
-                    ++ (toString heading)
-                    ++ ","
-                    ++ (toString x)
-                    ++ ","
-                    ++ (toString y)
-                    ++ ")"
-                )
-            ]
-            []
+drawRock : Model.Rock -> Svg Model.Msg
+drawRock { pos, radius, angle } =
+    drawObject pos radius angle rockPts
+
+
+drawShip : Model.Ship -> Svg Model.Msg
+drawShip ship =
+    drawObject ship.pos 10 ship.heading shipPts
+
+
+drawLife : Model.Point -> Svg Model.Msg
+drawLife pos =
+    drawObject pos 10 270 shipPts
