@@ -1,15 +1,15 @@
 # spcgame
 Asteroids in Elm as a learning exercise
 
-Requires elm 0.17
+Requires elm 0.18
 
 To get started:
 clone the repo
 cd to the top level of the repo
 type `elm-reactor`
-This should respond: 
+This should respond:
 ~~~~
-elm-reactor 0.17.1
+elm-reactor 0.18.x
 Listening on http://localhost:8000/
 ~~~~
 

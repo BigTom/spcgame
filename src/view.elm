@@ -32,8 +32,8 @@ view model =
         Model.Start ->
             Html.div [] [ startScreen ]
 
-        Model.Over score ->
-            Html.div [] [ endScreen score ]
+        Model.GameOver score ->
+            Html.div [] [ endScreen score model.highScore ]
 
 
 startScreen : Html.Html Model.Msg
@@ -42,18 +42,23 @@ startScreen =
         (svgArea Model.screenWidth Model.screenHeight)
         ([ drawBackground ]
             ++ drawMsg "Asteroids!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ drawMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 20
+            ++ drawMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 16
+            ++ drawMsg "A - rotate anti-clockwise" (Model.Point Model.midX (Model.midY + 47)) 10
+            ++ drawMsg "D - rotate clockwise" (Model.Point Model.midX (Model.midY + 62)) 10
+            ++ drawMsg "W - forward" (Model.Point Model.midX (Model.midY + 77)) 10
+            ++ drawMsg "Spc - Fire" (Model.Point Model.midX (Model.midY + 92)) 10
         )
 
 
-endScreen : Int -> Html.Html Model.Msg
-endScreen score =
+endScreen : Int -> Int -> Html.Html Model.Msg
+endScreen score highScore =
     Svg.svg
         (svgArea Model.screenWidth Model.screenHeight)
         ([ drawBackground ]
             ++ drawMsg "Game Over!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ drawMsg (toString score) (Model.Point Model.midX (Model.midY + 32)) 32
-            ++ drawMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 80)) 20
+            ++ drawMsg ("Score - " ++ (toString score)) (Model.Point Model.midX (Model.midY + 32)) 28
+            ++ drawMsg ("High Score - " ++ (toString highScore)) (Model.Point Model.midX (Model.midY + 64)) 28
+            ++ drawMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 94)) 16
         )
 
 
@@ -132,11 +137,11 @@ scaleCoords s ( x, y ) =
     toString (x * toFloat s) ++ " " ++ toString (y * toFloat s)
 
 
-drawObject : Model.Point -> Int -> Int -> List Coords -> Svg Model.Msg
-drawObject pos scale angle rawPts =
+drawObject : Model.Point -> Int -> Int -> List Coords -> String -> Svg Model.Msg
+drawObject pos scale angle rawPts strokeColor =
     Svg.polygon
         [ points (List.foldl (++) "" (List.intersperse "," (List.map (scaleCoords scale) rawPts)))
-        , stroke "white"
+        , stroke strokeColor
         , fillOpacity "0.0"
         , transform
             ("rotate("
@@ -159,14 +164,14 @@ drawObject pos scale angle rawPts =
 
 drawRock : Model.Rock -> Svg Model.Msg
 drawRock { pos, radius, angle } =
-    drawObject pos radius angle rockPts
+    drawObject pos radius angle rockPts "blue"
 
 
 drawShip : Model.Ship -> Svg Model.Msg
 drawShip ship =
-    drawObject ship.pos 10 ship.heading shipPts
+    drawObject ship.pos 10 ship.heading shipPts "white"
 
 
 drawLife : Model.Point -> Svg Model.Msg
 drawLife pos =
-    drawObject pos 10 270 shipPts
+    drawObject pos 10 270 shipPts "white"

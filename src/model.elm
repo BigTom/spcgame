@@ -4,6 +4,9 @@ import Time
 import Random
 
 
+-- Screen size is fixed for this game and the dimensions are defined here.
+
+
 screenWidth : Int
 screenWidth =
     600
@@ -47,10 +50,10 @@ type Rotating
     | Anticlockwise
 
 
-type GameState
+type AppState
     = Start
     | Running Round
-    | Over Int
+    | GameOver Int
 
 
 type alias Ship =
@@ -90,10 +93,11 @@ type alias Round =
 
 
 type alias Model =
-    { state : GameState
+    { state : AppState
     , lives : Int
     , difficulty : Int
     , seed : Random.Seed
+    , highScore : Int
     }
 
 
@@ -103,8 +107,8 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model Start 3 1 (Random.initialSeed 0)
-    , Random.generate NewRound (Random.int 0 Random.maxInt)
+    ( Model Start 3 1 (Random.initialSeed 0) 0
+    , Random.generate NewLevel (Random.int 0 Random.maxInt)
     )
 
 
@@ -120,13 +124,13 @@ startingShip =
     }
 
 
-genGame : Random.Seed -> ( Model, Cmd Msg )
-genGame seed =
+genGame : Int -> Random.Seed -> ( Model, Cmd Msg )
+genGame highScore seed =
     let
         ( round, nextSeed ) =
             genRound 1 0 seed
     in
-        ( Model (Running round) 3 1 nextSeed, Cmd.none )
+        ( Model (Running round) 3 1 nextSeed highScore, Cmd.none )
 
 
 genRound : Int -> Score -> Random.Seed -> ( Round, Random.Seed )
@@ -212,24 +216,13 @@ initRocks difficulty seed =
 
 spinDir : Random.Seed -> ( Int, Random.Seed )
 spinDir seed =
-    let
-        ( b, s ) =
-            Random.step Random.bool seed
-    in
-        if b then
-            ( 1, s )
-        else
-            ( -1, s )
-
-
-
--- MESSAGES
+    Random.step (Random.int -1 1) seed
 
 
 type Msg
     = Tick Time.Time
     | Downs Char
     | Ups Char
-    | WonRound
-    | LostRound
-    | NewRound Int
+    | WonLevel
+    | LostLife
+    | NewLevel Int

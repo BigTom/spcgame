@@ -9,19 +9,19 @@ update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
     case model.state of
         Model.Start ->
-            updateStart model msg
+            start model msg
 
         Model.Running round ->
-            updateRunning model round msg
+            running model round msg
 
-        Model.Over _ ->
-            updateOver model msg
+        Model.GameOver score ->
+            roundOver model msg
 
 
-updateStart : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-updateStart model msg =
+start : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+start model msg =
     case msg of
-        Model.NewRound seedSeed ->
+        Model.NewLevel seedSeed ->
             ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
 
         Model.Downs charCode ->
@@ -31,14 +31,14 @@ updateStart model msg =
             ( model, Cmd.none )
 
 
-updateRunning : Model.Model -> Model.Round -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-updateRunning model round msg =
+running : Model.Model -> Model.Round -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+running model round msg =
     case msg of
-        Model.LostRound ->
-            ( lostRound model round, Cmd.none )
+        Model.LostLife ->
+            ( lostLife model round, Cmd.none )
 
-        Model.WonRound ->
-            ( wonRound model round, Cmd.none )
+        Model.WonLevel ->
+            ( wonLevel model round, Cmd.none )
 
         Model.Tick _ ->
             let
@@ -61,14 +61,14 @@ updateRunning model round msg =
             in
                 ( { model | state = Model.Running newRound }, Cmd.none )
 
-        Model.NewRound seedSeed ->
+        Model.NewLevel seedSeed ->
             ( model, Cmd.none )
 
 
-updateOver : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-updateOver model msg =
+roundOver : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
+roundOver model msg =
     case msg of
-        Model.NewRound seedSeed ->
+        Model.NewLevel seedSeed ->
             ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
 
         Model.Downs charCode ->
@@ -81,13 +81,13 @@ updateOver model msg =
 newGame : Char -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 newGame charCode model =
     if charCode == 'B' then
-        Model.genGame model.seed
+        Model.genGame model.highScore model.seed
     else
         ( model, Cmd.none )
 
 
-lostRound : Model.Model -> Model.Round -> Model.Model
-lostRound model currentRound =
+lostLife : Model.Model -> Model.Round -> Model.Model
+lostLife model currentRound =
     if model.lives > 1 then
         let
             difficulty =
@@ -103,11 +103,18 @@ lostRound model currentRound =
                 , seed = nextSeed
             }
     else
-        { model | state = Model.Over currentRound.score }
+        let
+            newHighScore =
+                max model.highScore currentRound.score
+        in
+            { model
+                | state = Model.GameOver currentRound.score
+                , highScore = newHighScore
+            }
 
 
-wonRound : Model.Model -> Model.Round -> Model.Model
-wonRound model currentRound =
+wonLevel : Model.Model -> Model.Round -> Model.Model
+wonLevel model currentRound =
     let
         difficulty =
             model.difficulty + 1
@@ -142,9 +149,9 @@ tick game =
 
         cmd =
             if shipImpact newRound.ship newRound.rocks then
-                message Model.LostRound
+                message Model.LostLife
             else if List.isEmpty newRocks then
-                message Model.WonRound
+                message Model.WonLevel
             else
                 Cmd.none
     in
@@ -282,7 +289,7 @@ updateBullets game =
 
 liveBullet : Int -> Model.Bullet -> Bool
 liveBullet tick { fired } =
-    tick < fired + 50
+    tick < fired + 30
 
 
 updateBullet : Model.Bullet -> Model.Bullet

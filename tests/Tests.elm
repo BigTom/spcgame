@@ -41,15 +41,27 @@ all =
                                 { x = 131, y = 100 }
                                 ( 0, 0 )
                                 15
+                                0
+                                0
                             , Model.Rock
                                 { x = 129, y = 100 }
                                 ( 0, 0 )
                                 15
+                                0
+                                0
                             ]
                         )
             , test "miss" <|
                 \() ->
                     Expect.false "false"
-                        (Update.shipImpact testShip [ Model.Rock { x = 131, y = 100 } ( 0, 0 ) 15 ])
+                        (Update.shipImpact testShip
+                            [ Model.Rock
+                                { x = 131, y = 100 }
+                                ( 0, 0 )
+                                15
+                                0
+                                0
+                            ]
+                        )
             ]
         ]
