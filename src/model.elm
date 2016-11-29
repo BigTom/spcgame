@@ -44,6 +44,10 @@ type alias Velocity =
     ( Float, Float )
 
 
+type alias Lives =
+    Int
+
+
 type Rotating
     = Not
     | Clockwise
@@ -94,7 +98,7 @@ type alias Round =
 
 type alias Model =
     { state : AppState
-    , lives : Int
+    , lives : Lives
     , difficulty : Int
     , seed : Random.Seed
     , highScore : Int
@@ -115,8 +119,12 @@ init creates a model
 -}
 init : Flags -> ( Model, Cmd Msg )
 init { randSeed } =
-    ( Model Start 3 1 (Random.initialSeed randSeed) 0
-    , Random.generate NewLevel (Random.int 0 Random.maxInt)
+    ( Model Start
+        3
+        1
+        (Random.initialSeed randSeed)
+        0
+    , Cmd.none
     )
 
 
@@ -145,7 +153,7 @@ genRound : Int -> Score -> Random.Seed -> ( Round, Random.Seed )
 genRound difficulty score seed =
     let
         ( rocks, nextSeed ) =
-            initRocks difficulty seed
+            genRocks difficulty seed
     in
         ( { tick = 0
           , ship = startingShip
@@ -217,8 +225,8 @@ genRock _ difficulty ( rocks, seed ) =
         ( (Rock position velocity 64 spin 0) :: rocks, seed3 )
 
 
-initRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
-initRocks difficulty seed =
+genRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
+genRocks difficulty seed =
     List.foldl (genRock difficulty) ( [], seed ) (List.range 0 5)
 
 
@@ -231,6 +239,3 @@ type Msg
     = Tick Time.Time
     | Downs Char
     | Ups Char
-    | WonLevel
-    | LostLife
-    | NewLevel Int

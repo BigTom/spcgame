@@ -29,7 +29,7 @@ view model =
         Model.Running currentRound ->
             Html.div []
                 [ runningScene currentRound model.lives
-                , Html.div [] [ Html.text (toString currentRound.ship) ]
+                  -- , Html.div [] [ Html.text (toString currentRound.ship) ]
                 ]
 
         Model.Start ->

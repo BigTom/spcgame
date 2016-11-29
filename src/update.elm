@@ -1,85 +1,45 @@
 module Update exposing (..)
 
 import Model
-import Task
-import Random
 
 
-{-|
-Primary update function.  Dispatches on model state rather than specific
-message.
--}
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
-    case model.state of
-        Model.Start ->
-            start model msg
-
-        Model.Running round ->
-            running model round msg
-
-        Model.GameOver score ->
-            roundOver model msg
-
-
-start : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-start model msg =
     case msg of
-        Model.NewLevel seedSeed ->
-            ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
-
-        Model.Downs charCode ->
-            newGame charCode model
-
-        _ ->
-            ( model, Cmd.none )
-
-
-running : Model.Model -> Model.Round -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-running model round msg =
-    case msg of
-        Model.LostLife ->
-            ( lostLife model round, Cmd.none )
-
-        Model.WonLevel ->
-            ( wonLevel model round, Cmd.none )
-
         Model.Tick _ ->
-            let
-                ( newRound, cmd ) =
-                    tick round
-            in
-                ( { model | state = Model.Running newRound }, cmd )
+            case model.state of
+                Model.Running round ->
+                    onTick model round
+
+                _ ->
+                    ( model, Cmd.none )
 
         Model.Downs charCode ->
-            let
-                newRound =
-                    { round | ship = shipDowns round.ship charCode }
-            in
-                ( { model | state = Model.Running newRound }, Cmd.none )
+            case model.state of
+                Model.Start ->
+                    newGame charCode model
+
+                Model.Running round ->
+                    let
+                        newRound =
+                            { round | ship = shipDowns round.ship charCode }
+                    in
+                        ( { model | state = Model.Running newRound }, Cmd.none )
+
+                Model.GameOver score ->
+                    newGame charCode model
 
         Model.Ups charCode ->
-            let
-                newRound =
-                    { round | ship = shipUps round.ship charCode }
-            in
-                ( { model | state = Model.Running newRound }, Cmd.none )
+            case model.state of
+                Model.Running round ->
+                    let
+                        newRound =
+                            { round | ship = shipUps round.ship charCode }
+                    in
+                        ( { model | state = Model.Running newRound }, Cmd.none )
 
-        Model.NewLevel seedSeed ->
-            ( model, Cmd.none )
-
-
-roundOver : Model.Model -> Model.Msg -> ( Model.Model, Cmd Model.Msg )
-roundOver model msg =
-    case msg of
-        Model.NewLevel seedSeed ->
-            ( { model | seed = (Random.initialSeed seedSeed) }, Cmd.none )
-
-        Model.Downs charCode ->
-            newGame charCode model
-
-        _ ->
-            ( model, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
 
 
 newGame : Char -> Model.Model -> ( Model.Model, Cmd Model.Msg )
@@ -133,8 +93,8 @@ wonLevel model currentRound =
         }
 
 
-tick : Model.Round -> ( Model.Round, Cmd Model.Msg )
-tick game =
+onTick : Model.Model -> Model.Round -> ( Model.Model, Cmd Model.Msg )
+onTick model game =
     let
         ( newBullets, remainingBullets ) =
             updateBullets game
@@ -151,16 +111,16 @@ tick game =
                 , score = game.score + score
             }
 
-        cmd =
+        newModel =
             if shipImpact newRound.ship newRound.rocks then
-                message Model.LostLife
+                lostLife model newRound
             else if List.isEmpty newRocks then
-                message Model.WonLevel
+                wonLevel model newRound
             else
-                Cmd.none
+                { model | state = Model.Running newRound }
     in
-        ( newRound
-        , cmd
+        ( newModel
+        , Cmd.none
         )
 
 
@@ -400,8 +360,3 @@ bulletHits bullets rocks =
 shipImpact : Model.Ship -> List Model.Rock -> Bool
 shipImpact ship rocks =
     List.any (\r -> (range ship.pos r.pos) <= toFloat (r.radius + 15)) rocks
-
-
-message : msg -> Cmd msg
-message msg =
-    Task.perform identity (Task.succeed msg)
