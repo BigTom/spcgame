@@ -3,7 +3,7 @@ Asteroids in Elm as a learning exercise
 
 Requires elm 0.18
 
-To get started:
+To get started (**Only tested on a Mac**):
 clone the repo
 cd to the top level of the repo
 type `./run.sh`
@@ -23,7 +23,7 @@ elm-live:
 [0001] 19ms        66KB GET    200 /scripts/asteroids.js
 ~~~~
 
-It should automatically open a browser session (only test with Chrome on a Mac).  
+It should automatically open a browser session (**Only tested with Chrome on a Mac**).  
 
 If it doesn't then open a browser and point it at: [http://localhost:8000/src/app.elm](http://localhost:8000/src/app.elm)
 It will take a while to start because it will initially download the elm-package dependencies and compile the code.
