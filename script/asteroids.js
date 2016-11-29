@@ -4868,26 +4868,26 @@ var _elm_lang$core$Debug$crash = _elm_lang$core$Native_Debug.crash;
 var _elm_lang$core$Debug$log = _elm_lang$core$Native_Debug.log;
 
 var _BigTom$spcgame$Model$spinDir = function (seed) {
-	var _p0 = A2(_elm_lang$core$Random$step, _elm_lang$core$Random$bool, seed);
-	var b = _p0._0;
-	var s = _p0._1;
-	return b ? {ctor: '_Tuple2', _0: 1, _1: s} : {ctor: '_Tuple2', _0: -1, _1: s};
+	return A2(
+		_elm_lang$core$Random$step,
+		A2(_elm_lang$core$Random$int, -1, 1),
+		seed);
 };
 var _BigTom$spcgame$Model$genVelocity = F2(
 	function (difficulty, seed) {
 		var inc = _elm_lang$core$Basics$toFloat(difficulty + 10) / 10;
-		var _p1 = A2(
+		var _p0 = A2(
 			_elm_lang$core$Random$step,
 			A2(_elm_lang$core$Random$float, 0.6, 0.9),
 			seed);
-		var rad = _p1._0;
-		var rs = _p1._1;
-		var _p2 = A2(
+		var rad = _p0._0;
+		var rs = _p0._1;
+		var _p1 = A2(
 			_elm_lang$core$Random$step,
 			A2(_elm_lang$core$Random$float, 0, _elm_lang$core$Basics$pi),
 			rs);
-		var theta = _p2._0;
-		var ts = _p2._1;
+		var theta = _p1._0;
+		var ts = _p1._1;
 		return {
 			ctor: '_Tuple2',
 			_0: {ctor: '_Tuple2', _0: rad * inc, _1: theta},
@@ -4900,24 +4900,24 @@ var _BigTom$spcgame$Model$midY = (_BigTom$spcgame$Model$screenHeight / 2) | 0;
 var _BigTom$spcgame$Model$screenWidth = 600;
 var _BigTom$spcgame$Model$midX = (_BigTom$spcgame$Model$screenWidth / 2) | 0;
 var _BigTom$spcgame$Model$genRockPos = function (seed) {
-	var _p3 = A2(_elm_lang$core$Random$step, _elm_lang$core$Random$bool, seed);
-	var left = _p3._0;
-	var ls = _p3._1;
-	var _p4 = A2(
+	var _p2 = A2(_elm_lang$core$Random$step, _elm_lang$core$Random$bool, seed);
+	var left = _p2._0;
+	var ls = _p2._1;
+	var _p3 = A2(
 		_elm_lang$core$Random$step,
 		A2(_elm_lang$core$Random$int, 0, (_BigTom$spcgame$Model$screenWidth / 3) | 0),
 		ls);
-	var px = _p4._0;
-	var xs = _p4._1;
-	var _p5 = A2(_elm_lang$core$Random$step, _elm_lang$core$Random$bool, xs);
-	var top = _p5._0;
-	var ts = _p5._1;
-	var _p6 = A2(
+	var px = _p3._0;
+	var xs = _p3._1;
+	var _p4 = A2(_elm_lang$core$Random$step, _elm_lang$core$Random$bool, xs);
+	var top = _p4._0;
+	var ts = _p4._1;
+	var _p5 = A2(
 		_elm_lang$core$Random$step,
 		A2(_elm_lang$core$Random$int, 0, (_BigTom$spcgame$Model$screenHeight / 3) | 0),
 		ts);
-	var py = _p6._0;
-	var ys = _p6._1;
+	var py = _p5._0;
+	var ys = _p5._1;
 	var y = top ? py : (_BigTom$spcgame$Model$screenHeight - py);
 	var x = left ? px : (_BigTom$spcgame$Model$screenWidth - px);
 	return {
@@ -4943,23 +4943,23 @@ var _BigTom$spcgame$Model$Rock = F5(
 		return {pos: a, velocity: b, radius: c, rotation: d, angle: e};
 	});
 var _BigTom$spcgame$Model$genRock = F3(
-	function (_p8, difficulty, _p7) {
-		var _p9 = _p7;
-		var _p10 = _BigTom$spcgame$Model$genRockPos(_p9._1);
-		var position = _p10._0;
-		var seed1 = _p10._1;
-		var _p11 = A2(_BigTom$spcgame$Model$genVelocity, difficulty, seed1);
-		var velocity = _p11._0;
-		var seed2 = _p11._1;
-		var _p12 = _BigTom$spcgame$Model$spinDir(seed2);
-		var spin = _p12._0;
-		var seed3 = _p12._1;
+	function (_p7, difficulty, _p6) {
+		var _p8 = _p6;
+		var _p9 = _BigTom$spcgame$Model$genRockPos(_p8._1);
+		var position = _p9._0;
+		var seed1 = _p9._1;
+		var _p10 = A2(_BigTom$spcgame$Model$genVelocity, difficulty, seed1);
+		var velocity = _p10._0;
+		var seed2 = _p10._1;
+		var _p11 = _BigTom$spcgame$Model$spinDir(seed2);
+		var spin = _p11._0;
+		var seed3 = _p11._1;
 		return {
 			ctor: '_Tuple2',
 			_0: {
 				ctor: '::',
 				_0: A5(_BigTom$spcgame$Model$Rock, position, velocity, 64, spin, 0),
-				_1: _p9._0
+				_1: _p8._0
 			},
 			_1: seed3
 		};
@@ -4980,10 +4980,13 @@ var _BigTom$spcgame$Model$Round = F5(
 	function (a, b, c, d, e) {
 		return {tick: a, ship: b, bullets: c, rocks: d, score: e};
 	});
-var _BigTom$spcgame$Model$Model = F4(
-	function (a, b, c, d) {
-		return {state: a, lives: b, difficulty: c, seed: d};
+var _BigTom$spcgame$Model$Model = F5(
+	function (a, b, c, d, e) {
+		return {state: a, lives: b, difficulty: c, seed: d, highScore: e};
 	});
+var _BigTom$spcgame$Model$Flags = function (a) {
+	return {randSeed: a};
+};
 var _BigTom$spcgame$Model$Anticlockwise = {ctor: 'Anticlockwise'};
 var _BigTom$spcgame$Model$Clockwise = {ctor: 'Clockwise'};
 var _BigTom$spcgame$Model$Not = {ctor: 'Not'};
@@ -5003,9 +5006,9 @@ var _BigTom$spcgame$Model$startingShip = {
 };
 var _BigTom$spcgame$Model$genRound = F3(
 	function (difficulty, score, seed) {
-		var _p13 = A2(_BigTom$spcgame$Model$initRocks, difficulty, seed);
-		var rocks = _p13._0;
-		var nextSeed = _p13._1;
+		var _p12 = A2(_BigTom$spcgame$Model$initRocks, difficulty, seed);
+		var rocks = _p12._0;
+		var nextSeed = _p12._1;
 		return {
 			ctor: '_Tuple2',
 			_0: {
@@ -5018,46 +5021,52 @@ var _BigTom$spcgame$Model$genRound = F3(
 			_1: nextSeed
 		};
 	});
-var _BigTom$spcgame$Model$Over = function (a) {
-	return {ctor: 'Over', _0: a};
+var _BigTom$spcgame$Model$GameOver = function (a) {
+	return {ctor: 'GameOver', _0: a};
 };
 var _BigTom$spcgame$Model$Running = function (a) {
 	return {ctor: 'Running', _0: a};
 };
-var _BigTom$spcgame$Model$genGame = function (seed) {
-	var _p14 = A3(_BigTom$spcgame$Model$genRound, 1, 0, seed);
-	var round = _p14._0;
-	var nextSeed = _p14._1;
+var _BigTom$spcgame$Model$genGame = F2(
+	function (highScore, seed) {
+		var _p13 = A3(_BigTom$spcgame$Model$genRound, 1, 0, seed);
+		var round = _p13._0;
+		var nextSeed = _p13._1;
+		return {
+			ctor: '_Tuple2',
+			_0: A5(
+				_BigTom$spcgame$Model$Model,
+				_BigTom$spcgame$Model$Running(round),
+				3,
+				1,
+				nextSeed,
+				highScore),
+			_1: _elm_lang$core$Platform_Cmd$none
+		};
+	});
+var _BigTom$spcgame$Model$Start = {ctor: 'Start'};
+var _BigTom$spcgame$Model$NewLevel = function (a) {
+	return {ctor: 'NewLevel', _0: a};
+};
+var _BigTom$spcgame$Model$init = function (_p14) {
+	var _p15 = _p14;
 	return {
 		ctor: '_Tuple2',
-		_0: A4(
+		_0: A5(
 			_BigTom$spcgame$Model$Model,
-			_BigTom$spcgame$Model$Running(round),
+			_BigTom$spcgame$Model$Start,
 			3,
 			1,
-			nextSeed),
-		_1: _elm_lang$core$Platform_Cmd$none
+			_elm_lang$core$Random$initialSeed(_p15.randSeed),
+			0),
+		_1: A2(
+			_elm_lang$core$Random$generate,
+			_BigTom$spcgame$Model$NewLevel,
+			A2(_elm_lang$core$Random$int, 0, _elm_lang$core$Random$maxInt))
 	};
 };
-var _BigTom$spcgame$Model$Start = {ctor: 'Start'};
-var _BigTom$spcgame$Model$NewRound = function (a) {
-	return {ctor: 'NewRound', _0: a};
-};
-var _BigTom$spcgame$Model$init = {
-	ctor: '_Tuple2',
-	_0: A4(
-		_BigTom$spcgame$Model$Model,
-		_BigTom$spcgame$Model$Start,
-		3,
-		1,
-		_elm_lang$core$Random$initialSeed(0)),
-	_1: A2(
-		_elm_lang$core$Random$generate,
-		_BigTom$spcgame$Model$NewRound,
-		A2(_elm_lang$core$Random$int, 0, _elm_lang$core$Random$maxInt))
-};
-var _BigTom$spcgame$Model$LostRound = {ctor: 'LostRound'};
-var _BigTom$spcgame$Model$WonRound = {ctor: 'WonRound'};
+var _BigTom$spcgame$Model$LostLife = {ctor: 'LostLife'};
+var _BigTom$spcgame$Model$WonLevel = {ctor: 'WonLevel'};
 var _BigTom$spcgame$Model$Ups = function (a) {
 	return {ctor: 'Ups', _0: a};
 };
@@ -5193,7 +5202,7 @@ var _BigTom$spcgame$Update$shipImpact = F2(
 var _BigTom$spcgame$Update$liveBullet = F2(
 	function (tick, _p8) {
 		var _p9 = _p8;
-		return _elm_lang$core$Native_Utils.cmp(tick, _p9.fired + 50) < 0;
+		return _elm_lang$core$Native_Utils.cmp(tick, _p9.fired + 30) < 0;
 	});
 var _BigTom$spcgame$Update$accelerateShip = F2(
 	function (_p10, acc) {
@@ -5389,10 +5398,10 @@ var _BigTom$spcgame$Update$tick = function (game) {
 			rocks: newRocks,
 			score: game.score + score
 		});
-	var cmd = A2(_BigTom$spcgame$Update$shipImpact, newRound.ship, newRound.rocks) ? _BigTom$spcgame$Update$message(_BigTom$spcgame$Model$LostRound) : (_elm_lang$core$List$isEmpty(newRocks) ? _BigTom$spcgame$Update$message(_BigTom$spcgame$Model$WonRound) : _elm_lang$core$Platform_Cmd$none);
+	var cmd = A2(_BigTom$spcgame$Update$shipImpact, newRound.ship, newRound.rocks) ? _BigTom$spcgame$Update$message(_BigTom$spcgame$Model$LostLife) : (_elm_lang$core$List$isEmpty(newRocks) ? _BigTom$spcgame$Update$message(_BigTom$spcgame$Model$WonLevel) : _elm_lang$core$Platform_Cmd$none);
 	return {ctor: '_Tuple2', _0: newRound, _1: cmd};
 };
-var _BigTom$spcgame$Update$wonRound = F2(
+var _BigTom$spcgame$Update$wonLevel = F2(
 	function (model, currentRound) {
 		var difficulty = model.difficulty + 1;
 		var _p29 = A3(_BigTom$spcgame$Model$genRound, difficulty, currentRound.score, model.seed);
@@ -5406,7 +5415,7 @@ var _BigTom$spcgame$Update$wonRound = F2(
 				seed: nextSeed
 			});
 	});
-var _BigTom$spcgame$Update$lostRound = F2(
+var _BigTom$spcgame$Update$lostLife = F2(
 	function (model, currentRound) {
 		if (_elm_lang$core$Native_Utils.cmp(model.lives, 1) > 0) {
 			var difficulty = 1;
@@ -5422,10 +5431,12 @@ var _BigTom$spcgame$Update$lostRound = F2(
 					seed: nextSeed
 				});
 		} else {
+			var newHighScore = A2(_elm_lang$core$Basics$max, model.highScore, currentRound.score);
 			return _elm_lang$core$Native_Utils.update(
 				model,
 				{
-					state: _BigTom$spcgame$Model$Over(currentRound.score)
+					state: _BigTom$spcgame$Model$GameOver(currentRound.score),
+					highScore: newHighScore
 				});
 		}
 	});
@@ -5433,13 +5444,13 @@ var _BigTom$spcgame$Update$newGame = F2(
 	function (charCode, model) {
 		return _elm_lang$core$Native_Utils.eq(
 			charCode,
-			_elm_lang$core$Native_Utils.chr('B')) ? _BigTom$spcgame$Model$genGame(model.seed) : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			_elm_lang$core$Native_Utils.chr('B')) ? A2(_BigTom$spcgame$Model$genGame, model.highScore, model.seed) : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 	});
-var _BigTom$spcgame$Update$updateOver = F2(
+var _BigTom$spcgame$Update$roundOver = F2(
 	function (model, msg) {
 		var _p31 = msg;
 		switch (_p31.ctor) {
-			case 'NewRound':
+			case 'NewLevel':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -5455,20 +5466,20 @@ var _BigTom$spcgame$Update$updateOver = F2(
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
-var _BigTom$spcgame$Update$updateRunning = F3(
+var _BigTom$spcgame$Update$running = F3(
 	function (model, round, msg) {
 		var _p32 = msg;
 		switch (_p32.ctor) {
-			case 'LostRound':
+			case 'LostLife':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_BigTom$spcgame$Update$lostRound, model, round),
+					_0: A2(_BigTom$spcgame$Update$lostLife, model, round),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'WonRound':
+			case 'WonLevel':
 				return {
 					ctor: '_Tuple2',
-					_0: A2(_BigTom$spcgame$Update$wonRound, model, round),
+					_0: A2(_BigTom$spcgame$Update$wonLevel, model, round),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'Tick':
@@ -5518,11 +5529,11 @@ var _BigTom$spcgame$Update$updateRunning = F3(
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
 		}
 	});
-var _BigTom$spcgame$Update$updateStart = F2(
+var _BigTom$spcgame$Update$start = F2(
 	function (model, msg) {
 		var _p34 = msg;
 		switch (_p34.ctor) {
-			case 'NewRound':
+			case 'NewLevel':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -5543,11 +5554,11 @@ var _BigTom$spcgame$Update$update = F2(
 		var _p35 = model.state;
 		switch (_p35.ctor) {
 			case 'Start':
-				return A2(_BigTom$spcgame$Update$updateStart, model, msg);
+				return A2(_BigTom$spcgame$Update$start, model, msg);
 			case 'Running':
-				return A3(_BigTom$spcgame$Update$updateRunning, model, _p35._0, msg);
+				return A3(_BigTom$spcgame$Update$running, model, _p35._0, msg);
 			default:
-				return A2(_BigTom$spcgame$Update$updateOver, model, msg);
+				return A2(_BigTom$spcgame$Update$roundOver, model, msg);
 		}
 	});
 
@@ -7510,7 +7521,7 @@ function mapProperty(func, property)
 	return on(
 		property.realKey,
 		property.value.options,
-		A2(_elm_lang$core$Json$map, func, property.value.decoder)
+		A2(_elm_lang$core$Json_Decode$map, func, property.value.decoder)
 	);
 }
 
@@ -9109,6 +9120,7 @@ return {
 };
 
 }();
+
 var _elm_lang$virtual_dom$VirtualDom$programWithFlags = function (impl) {
 	return A2(_elm_lang$virtual_dom$Native_VirtualDom.programWithFlags, _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags, impl);
 };
@@ -9619,8 +9631,8 @@ var _BigTom$spcgame$View$scaleCoords = F2(
 				_elm_lang$core$Basics$toString(
 					_p1._1 * _elm_lang$core$Basics$toFloat(s))));
 	});
-var _BigTom$spcgame$View$drawObject = F4(
-	function (pos, scale, angle, rawPts) {
+var _BigTom$spcgame$View$drawObject = F5(
+	function (pos, scale, angle, rawPts, strokeColor) {
 		return A2(
 			_elm_lang$svg$Svg$polygon,
 			{
@@ -9642,7 +9654,7 @@ var _BigTom$spcgame$View$drawObject = F4(
 								rawPts)))),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$stroke('blue'),
+					_0: _elm_lang$svg$Svg_Attributes$stroke(strokeColor),
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$svg$Svg_Attributes$fillOpacity('0.0'),
@@ -9801,37 +9813,51 @@ var _BigTom$spcgame$View$svgArea = F2(
 			}
 		};
 	});
-var _BigTom$spcgame$View$endScreen = function (score) {
-	return A2(
-		_elm_lang$svg$Svg$svg,
-		A2(_BigTom$spcgame$View$svgArea, _BigTom$spcgame$Model$screenWidth, _BigTom$spcgame$Model$screenHeight),
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			{
-				ctor: '::',
-				_0: _BigTom$spcgame$View$drawBackground,
-				_1: {ctor: '[]'}
-			},
+var _BigTom$spcgame$View$endScreen = F2(
+	function (score, highScore) {
+		return A2(
+			_elm_lang$svg$Svg$svg,
+			A2(_BigTom$spcgame$View$svgArea, _BigTom$spcgame$Model$screenWidth, _BigTom$spcgame$Model$screenHeight),
 			A2(
 				_elm_lang$core$Basics_ops['++'],
-				A3(
-					_BigTom$spcgame$View$drawMsg,
-					'Game Over!',
-					A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY - 60),
-					60),
+				{
+					ctor: '::',
+					_0: _BigTom$spcgame$View$drawBackground,
+					_1: {ctor: '[]'}
+				},
 				A2(
 					_elm_lang$core$Basics_ops['++'],
 					A3(
 						_BigTom$spcgame$View$drawMsg,
-						_elm_lang$core$Basics$toString(score),
-						A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 32),
-						32),
-					A3(
-						_BigTom$spcgame$View$drawMsg,
-						'Press \'B\' to start again',
-						A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 80),
-						20)))));
-};
+						'Game Over!',
+						A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY - 60),
+						60),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A3(
+							_BigTom$spcgame$View$drawMsg,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'Score - ',
+								_elm_lang$core$Basics$toString(score)),
+							A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 32),
+							28),
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A3(
+								_BigTom$spcgame$View$drawMsg,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'High Score - ',
+									_elm_lang$core$Basics$toString(highScore)),
+								A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 64),
+								28),
+							A3(
+								_BigTom$spcgame$View$drawMsg,
+								'Press \'B\' to start again',
+								A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 94),
+								16))))));
+	});
 var _BigTom$spcgame$View$startScreen = A2(
 	_elm_lang$svg$Svg$svg,
 	A2(_BigTom$spcgame$View$svgArea, _BigTom$spcgame$Model$screenWidth, _BigTom$spcgame$Model$screenHeight),
@@ -9849,11 +9875,39 @@ var _BigTom$spcgame$View$startScreen = A2(
 				'Asteroids!',
 				A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY - 60),
 				60),
-			A3(
-				_BigTom$spcgame$View$drawMsg,
-				'Press \'B\' to start',
-				A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 32),
-				20))));
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A3(
+					_BigTom$spcgame$View$drawMsg,
+					'Press \'B\' to start',
+					A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 32),
+					16),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					A3(
+						_BigTom$spcgame$View$drawMsg,
+						'A - rotate anti-clockwise',
+						A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 47),
+						10),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						A3(
+							_BigTom$spcgame$View$drawMsg,
+							'D - rotate clockwise',
+							A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 62),
+							10),
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							A3(
+								_BigTom$spcgame$View$drawMsg,
+								'W - forward',
+								A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 77),
+								10),
+							A3(
+								_BigTom$spcgame$View$drawMsg,
+								'Spc - Fire',
+								A2(_BigTom$spcgame$Model$Point, _BigTom$spcgame$Model$midX, _BigTom$spcgame$Model$midY + 92),
+								10))))))));
 var _BigTom$spcgame$View$shipPts = {
 	ctor: '::',
 	_0: {ctor: '_Tuple2', _0: -1.5, _1: -1},
@@ -9876,10 +9930,10 @@ var _BigTom$spcgame$View$shipPts = {
 	}
 };
 var _BigTom$spcgame$View$drawShip = function (ship) {
-	return A4(_BigTom$spcgame$View$drawObject, ship.pos, 10, ship.heading, _BigTom$spcgame$View$shipPts);
+	return A5(_BigTom$spcgame$View$drawObject, ship.pos, 10, ship.heading, _BigTom$spcgame$View$shipPts, 'white');
 };
 var _BigTom$spcgame$View$drawLife = function (pos) {
-	return A4(_BigTom$spcgame$View$drawObject, pos, 10, 270, _BigTom$spcgame$View$shipPts);
+	return A5(_BigTom$spcgame$View$drawObject, pos, 10, 270, _BigTom$spcgame$View$shipPts, 'white');
 };
 var _BigTom$spcgame$View$remainingLives = function (lives) {
 	var drawLifePos = A2(
@@ -10081,7 +10135,7 @@ var _BigTom$spcgame$View$rockPts = {
 };
 var _BigTom$spcgame$View$drawRock = function (_p2) {
 	var _p3 = _p2;
-	return A4(_BigTom$spcgame$View$drawObject, _p3.pos, _p3.radius, _p3.angle, _BigTom$spcgame$View$rockPts);
+	return A5(_BigTom$spcgame$View$drawObject, _p3.pos, _p3.radius, _p3.angle, _BigTom$spcgame$View$rockPts, 'blue');
 };
 var _BigTom$spcgame$View$runningScene = F2(
 	function (currentRound, lives) {
@@ -10154,7 +10208,7 @@ var _BigTom$spcgame$View$view = function (model) {
 				{ctor: '[]'},
 				{
 					ctor: '::',
-					_0: _BigTom$spcgame$View$endScreen(_p4._0),
+					_0: A2(_BigTom$spcgame$View$endScreen, _p4._0, model.highScore),
 					_1: {ctor: '[]'}
 				});
 	}
@@ -10519,7 +10573,15 @@ var _elm_lang$keyboard$Keyboard$subMap = F2(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Keyboard'] = {pkg: 'elm-lang/keyboard', init: _elm_lang$keyboard$Keyboard$init, onEffects: _elm_lang$keyboard$Keyboard$onEffects, onSelfMsg: _elm_lang$keyboard$Keyboard$onSelfMsg, tag: 'sub', subMap: _elm_lang$keyboard$Keyboard$subMap};
 
-var _BigTom$spcgame$Subscriptions$subscriptions = function (_p0) {
+var _BigTom$spcgame$Subscriptions$tickSubscription = function (model) {
+	var _p0 = model.state;
+	if (_p0.ctor === 'Running') {
+		return A2(_elm_lang$core$Time$every, 20 * _elm_lang$core$Time$millisecond, _BigTom$spcgame$Model$Tick);
+	} else {
+		return _elm_lang$core$Platform_Sub$none;
+	}
+};
+var _BigTom$spcgame$Subscriptions$subscriptions = function (model) {
 	return _elm_lang$core$Platform_Sub$batch(
 		{
 			ctor: '::',
@@ -10537,15 +10599,22 @@ var _BigTom$spcgame$Subscriptions$subscriptions = function (_p0) {
 					}),
 				_1: {
 					ctor: '::',
-					_0: A2(_elm_lang$core$Time$every, 20 * _elm_lang$core$Time$millisecond, _BigTom$spcgame$Model$Tick),
+					_0: _BigTom$spcgame$Subscriptions$tickSubscription(model),
 					_1: {ctor: '[]'}
 				}
 			}
 		});
 };
 
-var _BigTom$spcgame$App$main = _elm_lang$html$Html$program(
-	{init: _BigTom$spcgame$Model$init, update: _BigTom$spcgame$Update$update, view: _BigTom$spcgame$View$view, subscriptions: _BigTom$spcgame$Subscriptions$subscriptions})();
+var _BigTom$spcgame$App$main = _elm_lang$html$Html$programWithFlags(
+	{init: _BigTom$spcgame$Model$init, update: _BigTom$spcgame$Update$update, view: _BigTom$spcgame$View$view, subscriptions: _BigTom$spcgame$Subscriptions$subscriptions})(
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (randSeed) {
+			return _elm_lang$core$Json_Decode$succeed(
+				{randSeed: randSeed});
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'randSeed', _elm_lang$core$Json_Decode$int)));
 
 var Elm = {};
 Elm['App'] = Elm['App'] || {};

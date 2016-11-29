@@ -7,9 +7,13 @@ import Subscriptions
 import Html
 
 
-main : Program Never Model.Model Model.Msg
+{-|
+Basic access to program.  No ports or flags required.
+Names are rather unimaginative
+-}
+main : Program Model.Flags Model.Model Model.Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = Model.init
         , update = Update.update
         , view = View.view

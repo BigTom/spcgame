@@ -101,13 +101,21 @@ type alias Model =
     }
 
 
+type alias Flags =
+    { randSeed : Int
+    }
+
+
 
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Model Start 3 1 (Random.initialSeed 0) 0
+{-|
+init creates a model
+-}
+init : Flags -> ( Model, Cmd Msg )
+init { randSeed } =
+    ( Model Start 3 1 (Random.initialSeed randSeed) 0
     , Random.generate NewLevel (Random.int 0 Random.maxInt)
     )
 

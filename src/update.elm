@@ -5,6 +5,10 @@ import Task
 import Random
 
 
+{-|
+Primary update function.  Dispatches on model state rather than specific
+message.
+-}
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
 update msg model =
     case model.state of

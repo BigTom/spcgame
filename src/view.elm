@@ -20,6 +20,9 @@ shipPts =
     [ ( -1.5, -1 ), ( 1.5, 0 ), ( -1.5, 1 ), ( -1, 0.6 ), ( -1, -0.6 ) ]
 
 
+{-|
+Primary view function
+-}
 view : Model.Model -> Html.Html Model.Msg
 view model =
     case model.state of
