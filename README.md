@@ -6,7 +6,7 @@ Requires elm 0.18
 To get started (**Only tested on a Mac**):
 clone the repo
 cd to the top level of the repo
-type `./run.sh`
+type `./run`
 This should respond with something like:
 ~~~~
 Success! Compiled 0 modules.                                        
