@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <script src="scripts/asteroids.js"></script>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script>
+      var node = document.getElementById('game');
+      seed = Math.floor(Math.random() * Number.MAX_VALUE)
+      var app = Elm.App.embed(node, { "randSeed": seed } );
+    </script>
+  </body>
+</html>

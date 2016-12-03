@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm -rf target
+mkdir target
+mkdir target/scripts
+cp src/index.html target
+cp src/style.css target
+elm-make src/App.elm --output=target/scripts/asteroids.js

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm -rf target
+mkdir target
+mkdir target/scripts
+cp index.html target
+cp style.css target
+elm-live src/App.elm --dir=target --open --output=target/scripts/asteroids.js
