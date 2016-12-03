@@ -3,6 +3,8 @@ Asteroids in Elm as a learning exercise
 
 Requires elm 0.18
 
+You can look at it [here](https://bigtom.github.io/asteroids)
+
 To get started (**Only tested on a Mac**):
 clone the repo
 cd to the top level of the repo
