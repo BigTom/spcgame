@@ -9,10 +9,64 @@ import Char
 subscriptions : Model.Model -> Sub Model.Msg
 subscriptions model =
     Sub.batch
-        [ Keyboard.downs (\code -> Model.Downs (Char.fromCode code))
-        , Keyboard.ups (\code -> Model.Ups (Char.fromCode code))
+        [ Keyboard.downs (downs model)
+        , Keyboard.ups (ups model)
         , tickSubscription model
         ]
+
+
+downs : Model.Model -> Int -> Model.Msg
+downs model keyCode =
+    let
+        char =
+            Char.fromCode keyCode
+    in
+        case char of
+            'W' ->
+                Model.Action Model.Accelerate
+
+            'D' ->
+                Model.Action Model.RotateLeft
+
+            'A' ->
+                Model.Action Model.RotateRight
+
+            ' ' ->
+                Model.Action Model.Fire
+
+            'B' ->
+                case model.state of
+                    Model.Running _ ->
+                        Model.Action Model.None
+
+                    _ ->
+                        Model.NewRound
+
+            _ ->
+                Model.Action Model.None
+
+
+ups : Model.Model -> Int -> Model.Msg
+ups model keyCode =
+    let
+        char =
+            Char.fromCode keyCode
+    in
+        case char of
+            'W' ->
+                Model.Action Model.Coast
+
+            'D' ->
+                Model.Action Model.MaintainHeading
+
+            'A' ->
+                Model.Action Model.MaintainHeading
+
+            ' ' ->
+                Model.Action Model.CeaseFire
+
+            _ ->
+                Model.Action Model.None
 
 
 

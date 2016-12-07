@@ -237,5 +237,16 @@ spinDir seed =
 
 type Msg
     = Tick Time.Time
-    | Downs Char
-    | Ups Char
+    | Action Act
+    | NewRound
+
+
+type Act
+    = Accelerate
+    | RotateLeft
+    | RotateRight
+    | Fire
+    | Coast
+    | MaintainHeading
+    | CeaseFire
+    | None

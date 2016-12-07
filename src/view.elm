@@ -2,6 +2,8 @@ module View exposing (view)
 
 import Model
 import Html
+import Html.Events as Evts
+import Html.Attributes as Attrs
 import Svg exposing (Svg)
 import Svg.Attributes exposing (..)
 
@@ -29,14 +31,52 @@ view model =
         Model.Running currentRound ->
             Html.div []
                 [ runningScene currentRound model.lives
-                  -- , Html.div [] [ Html.text (toString currentRound.ship) ]
+                , Html.div []
+                    [ Html.button
+                        [ Evts.onMouseDown (Model.Action Model.RotateLeft)
+                        , Evts.onMouseUp (Model.Action Model.MaintainHeading)
+                        ]
+                        [ Html.text "Left" ]
+                    , Html.button
+                        [ Evts.onMouseDown (Model.Action Model.Accelerate)
+                        , Evts.onMouseUp (Model.Action Model.Coast)
+                        ]
+                        [ Html.text "Fwd" ]
+                    , Html.button
+                        [ Evts.onMouseDown (Model.Action Model.RotateLeft)
+                        , Evts.onMouseUp (Model.Action Model.MaintainHeading)
+                        ]
+                        [ Html.text "Right" ]
+                    ]
+                , Html.div []
+                    [ Html.button
+                        [ Attrs.class "button"
+                        , Evts.onMouseDown (Model.Action Model.Fire)
+                        , Evts.onMouseUp (Model.Action Model.CeaseFire)
+                        ]
+                        [ Html.text "Fire" ]
+                    ]
+                , Html.div [] [ Html.text (toString currentRound.ship) ]
                 ]
 
         Model.Start ->
-            Html.div [] [ startScreen ]
+            instructionScreen startScreen
 
         Model.GameOver score ->
-            Html.div [] [ endScreen score model.highScore ]
+            instructionScreen (endScreen score model.highScore)
+
+
+instructionScreen : Html.Html Model.Msg -> Html.Html Model.Msg
+instructionScreen screen =
+    Html.div []
+        [ screen
+        , Html.div []
+            [ Html.button
+                [ Evts.onMouseDown Model.NewRound
+                ]
+                [ Html.text "Start" ]
+            ]
+        ]
 
 
 startScreen : Html.Html Model.Msg

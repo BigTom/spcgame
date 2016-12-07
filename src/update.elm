@@ -14,40 +14,57 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        Model.Downs charCode ->
-            case model.state of
-                Model.Start ->
-                    newGame charCode model
+        Model.NewRound ->
+            Model.genGame model.highScore model.seed
 
-                Model.Running round ->
-                    let
-                        newRound =
-                            { round | ship = shipDowns round.ship charCode }
-                    in
-                        ( { model | state = Model.Running newRound }, Cmd.none )
-
-                Model.GameOver score ->
-                    newGame charCode model
-
-        Model.Ups charCode ->
+        Model.Action act ->
             case model.state of
                 Model.Running round ->
-                    let
-                        newRound =
-                            { round | ship = shipUps round.ship charCode }
-                    in
-                        ( { model | state = Model.Running newRound }, Cmd.none )
+                    ( onShipAction model round act, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
 
-newGame : Char -> Model.Model -> ( Model.Model, Cmd Model.Msg )
-newGame charCode model =
-    if charCode == 'B' then
-        Model.genGame model.highScore model.seed
-    else
-        ( model, Cmd.none )
+onShipAction : Model.Model -> Model.Round -> Model.Act -> Model.Model
+onShipAction model round act =
+    let
+        state =
+            model.state
+
+        ship =
+            round.ship
+
+        newShip =
+            case act of
+                Model.Accelerate ->
+                    { ship | accelerating = True }
+
+                Model.RotateLeft ->
+                    { ship | rotating = Model.Clockwise }
+
+                Model.RotateRight ->
+                    { ship | rotating = Model.Anticlockwise }
+
+                Model.Fire ->
+                    { ship | firing = True }
+
+                Model.Coast ->
+                    { ship | accelerating = False }
+
+                Model.MaintainHeading ->
+                    { ship | rotating = Model.Not }
+
+                Model.CeaseFire ->
+                    { ship | firing = False }
+
+                Model.None ->
+                    ship
+
+        newRound =
+            { round | ship = newShip }
+    in
+        { model | state = Model.Running newRound }
 
 
 lostLife : Model.Model -> Model.Round -> Model.Model
@@ -122,44 +139,6 @@ onTick model game =
         ( newModel
         , Cmd.none
         )
-
-
-shipDowns : Model.Ship -> Char -> Model.Ship
-shipDowns ship charCode =
-    case charCode of
-        'W' ->
-            { ship | accelerating = True }
-
-        'D' ->
-            { ship | rotating = Model.Clockwise }
-
-        'A' ->
-            { ship | rotating = Model.Anticlockwise }
-
-        ' ' ->
-            { ship | firing = True }
-
-        _ ->
-            ship
-
-
-shipUps : Model.Ship -> Char -> Model.Ship
-shipUps ship charCode =
-    case charCode of
-        'W' ->
-            { ship | accelerating = False }
-
-        'D' ->
-            { ship | rotating = Model.Not }
-
-        'A' ->
-            { ship | rotating = Model.Not }
-
-        ' ' ->
-            { ship | firing = False }
-
-        _ ->
-            ship
 
 
 v2p : Model.Velocity -> Model.Point
