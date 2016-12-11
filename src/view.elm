@@ -2,8 +2,8 @@ module View exposing (view)
 
 import Model
 import Html
+import Html.Attributes as Ha
 import Html.Events as Evts
-import Html.Attributes as Attrs
 import Svg exposing (Svg)
 import Svg.Attributes exposing (..)
 
@@ -30,92 +30,116 @@ view model =
     case model.state of
         Model.Running currentRound ->
             Html.div []
-                [ runningScene currentRound model.lives
-                , Html.div []
-                    [ Html.button
-                        [ Evts.onMouseDown (Model.Action Model.RotateLeft)
-                        , Evts.onMouseUp (Model.Action Model.MaintainHeading)
-                        ]
-                        [ Html.text "Left" ]
-                    , Html.button
-                        [ Evts.onMouseDown (Model.Action Model.Accelerate)
-                        , Evts.onMouseUp (Model.Action Model.Coast)
-                        ]
-                        [ Html.text "Fwd" ]
-                    , Html.button
-                        [ Evts.onMouseDown (Model.Action Model.RotateLeft)
-                        , Evts.onMouseUp (Model.Action Model.MaintainHeading)
-                        ]
-                        [ Html.text "Right" ]
-                    ]
-                , Html.div []
-                    [ Html.button
-                        [ Attrs.class "button"
-                        , Evts.onMouseDown (Model.Action Model.Fire)
-                        , Evts.onMouseUp (Model.Action Model.CeaseFire)
-                        ]
-                        [ Html.text "Fire" ]
-                    ]
-                , Html.div [] [ Html.text (toString currentRound.ship) ]
+                [ runningScene model.win currentRound model.lives
+                , controls model.win
+                  -- , Html.div [ class "debug" ] [ Html.text (toString currentRound.ship) ]
                 ]
 
         Model.Start ->
-            instructionScreen startScreen
+            instructionScreen (startScreen model.win)
 
         Model.GameOver score ->
-            instructionScreen (endScreen score model.highScore)
+            instructionScreen ((endScreen model.win) score model.highScore)
+
+
+controls : Model.Win -> Html.Html Model.Msg
+controls win =
+    Html.div []
+        [ Html.div
+            [ class "controls"
+            , Ha.style
+                [ ( "width", toString win.maxX )
+                ]
+            ]
+            [ Html.button
+                [ class "ctrl"
+                , Evts.onMouseDown (Model.Action Model.RotateLeft)
+                , Evts.onMouseUp (Model.Action Model.MaintainHeading)
+                ]
+                [ Html.text "Left" ]
+            , Html.button
+                [ class "ctrl"
+                , Evts.onMouseDown (Model.Action Model.Accelerate)
+                , Evts.onMouseUp (Model.Action Model.Coast)
+                ]
+                [ Html.text "Fwd" ]
+            , Html.button
+                [ class "ctrl"
+                , Evts.onMouseDown (Model.Action Model.RotateLeft)
+                , Evts.onMouseUp (Model.Action Model.MaintainHeading)
+                ]
+                [ Html.text "Right" ]
+            ]
+        , Html.div [ class "controls" ]
+            [ Html.button
+                [ class "ctrl"
+                , Evts.onMouseDown (Model.Action Model.Fire)
+                , Evts.onMouseUp (Model.Action Model.CeaseFire)
+                ]
+                [ Html.text "Fire" ]
+            ]
+        ]
 
 
 instructionScreen : Html.Html Model.Msg -> Html.Html Model.Msg
 instructionScreen screen =
     Html.div []
         [ screen
-        , Html.div []
+        , Html.div [ class "controls" ]
             [ Html.button
-                [ Evts.onMouseDown Model.NewRound
+                [ class "button"
+                , Evts.onMouseDown Model.NewRound
                 ]
                 [ Html.text "Start" ]
             ]
         ]
 
 
-startScreen : Html.Html Model.Msg
-startScreen =
+startScreen : Model.Win -> Html.Html Model.Msg
+startScreen win =
+    let
+        { maxX, maxY, midX, midY } =
+            win
+    in
+        Svg.svg
+            (svgArea maxX maxY)
+            ([ drawBackground win ]
+                ++ drawMsg "Asteroids!" (Model.Point midX (midY - 60)) 60
+                ++ drawMsg "Press 'B' to start" (Model.Point midX (midY + 32)) 16
+                ++ drawMsg "A - rotate anti-clockwise" (Model.Point midX (midY + 47)) 10
+                ++ drawMsg "D - rotate clockwise" (Model.Point midX (midY + 62)) 10
+                ++ drawMsg "W - forward" (Model.Point midX (midY + 77)) 10
+                ++ drawMsg "Spc - Fire" (Model.Point midX (midY + 92)) 10
+            )
+
+
+endScreen : Model.Win -> Int -> Int -> Html.Html Model.Msg
+endScreen win score highScore =
+    let
+        { maxX, maxY, midX, midY } =
+            win
+    in
+        Svg.svg
+            (svgArea win.maxX win.maxY)
+            ([ (drawBackground win) ]
+                ++ drawMsg "Game Over!" (Model.Point midX (midY - 60)) 60
+                ++ drawMsg ("Score - " ++ (toString score)) (Model.Point midX (midY + 32)) 28
+                ++ drawMsg ("High Score - " ++ (toString highScore)) (Model.Point midX (midY + 64)) 28
+                ++ drawMsg "Press 'B' to start again" (Model.Point midX (midY + 94)) 16
+            )
+
+
+runningScene : Model.Win -> Model.Round -> Int -> Html.Html Model.Msg
+runningScene win currentRound lives =
     Svg.svg
-        (svgArea Model.screenWidth Model.screenHeight)
-        ([ drawBackground ]
-            ++ drawMsg "Asteroids!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ drawMsg "Press 'B' to start" (Model.Point Model.midX (Model.midY + 32)) 16
-            ++ drawMsg "A - rotate anti-clockwise" (Model.Point Model.midX (Model.midY + 47)) 10
-            ++ drawMsg "D - rotate clockwise" (Model.Point Model.midX (Model.midY + 62)) 10
-            ++ drawMsg "W - forward" (Model.Point Model.midX (Model.midY + 77)) 10
-            ++ drawMsg "Spc - Fire" (Model.Point Model.midX (Model.midY + 92)) 10
-        )
-
-
-endScreen : Int -> Int -> Html.Html Model.Msg
-endScreen score highScore =
-    Svg.svg
-        (svgArea Model.screenWidth Model.screenHeight)
-        ([ drawBackground ]
-            ++ drawMsg "Game Over!" (Model.Point Model.midX (Model.midY - 60)) 60
-            ++ drawMsg ("Score - " ++ (toString score)) (Model.Point Model.midX (Model.midY + 32)) 28
-            ++ drawMsg ("High Score - " ++ (toString highScore)) (Model.Point Model.midX (Model.midY + 64)) 28
-            ++ drawMsg "Press 'B' to start again" (Model.Point Model.midX (Model.midY + 94)) 16
-        )
-
-
-runningScene : Model.Round -> Int -> Html.Html Model.Msg
-runningScene currentRound lives =
-    Svg.svg
-        (svgArea Model.screenWidth Model.screenHeight)
-        ([ drawBackground
+        (svgArea win.maxX win.maxY)
+        ([ (drawBackground win)
          , drawShip currentRound.ship
          ]
             ++ List.map drawBullet currentRound.bullets
             ++ List.map drawRock currentRound.rocks
             ++ remainingLives lives
-            ++ drawMsg (toString currentRound.score) (Model.Point ((Model.screenWidth * 2) // 3) 32) 32
+            ++ drawMsg (toString currentRound.score) (Model.Point ((win.maxX * 2) // 3) 32) 32
         )
 
 
@@ -123,7 +147,6 @@ svgArea : Int -> Int -> List (Svg.Attribute msg)
 svgArea x y =
     [ width (toString x)
     , height (toString y)
-    , style ("margin-left: 20 px")
     ]
 
 
@@ -153,11 +176,11 @@ drawMsg msg pos size =
         ]
 
 
-drawBackground : Svg Model.Msg
-drawBackground =
+drawBackground : Model.Win -> Svg Model.Msg
+drawBackground { maxX, maxY } =
     Svg.rect
-        [ width (toString Model.screenWidth)
-        , height (toString Model.screenHeight)
+        [ width (toString maxX)
+        , height (toString maxY)
         , fill "black"
         ]
         []

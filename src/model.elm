@@ -2,29 +2,30 @@ module Model exposing (..)
 
 import Time
 import Random
+import Window
 
 
--- Screen size is fixed for this game and the dimensions are defined here.
+--- Screen size is fixed for this game and the dimensions are defined here.
 
 
-screenWidth : Int
-screenWidth =
+stdMaxX : Int
+stdMaxX =
     600
 
 
-screenHeight : Int
-screenHeight =
+stdMaxY : Int
+stdMaxY =
     600
 
 
-midX : Int
-midX =
-    (screenWidth // 2)
+stdMidX : Int
+stdMidX =
+    (stdMaxX // 2)
 
 
-midY : Int
-midY =
-    (screenHeight // 2)
+stdMidY : Int
+stdMidY =
+    (stdMaxY // 2)
 
 
 initialHeading : Int
@@ -58,6 +59,14 @@ type AppState
     = Start
     | Running Round
     | GameOver Int
+
+
+type alias Win =
+    { maxX : Int
+    , maxY : Int
+    , midX : Int
+    , midY : Int
+    }
 
 
 type alias Ship =
@@ -102,11 +111,14 @@ type alias Model =
     , difficulty : Int
     , seed : Random.Seed
     , highScore : Int
+    , win : Win
     }
 
 
 type alias Flags =
     { randSeed : Int
+    , width : Int
+    , height : Int
     }
 
 
@@ -118,18 +130,19 @@ type alias Flags =
 init creates a model
 -}
 init : Flags -> ( Model, Cmd Msg )
-init { randSeed } =
+init { randSeed, width, height } =
     ( Model Start
         3
         1
         (Random.initialSeed randSeed)
         0
+        (Win width (height - 100) (width // 2) ((height - 100) // 2))
     , Cmd.none
     )
 
 
-startingShip : Ship
-startingShip =
+startingShip : Win -> Ship
+startingShip { midX, midY } =
     { pos = { x = midX, y = midY }
     , velocity = ( 0, degrees (toFloat initialHeading) )
     , heading = initialHeading
@@ -140,23 +153,23 @@ startingShip =
     }
 
 
-genGame : Int -> Random.Seed -> ( Model, Cmd Msg )
-genGame highScore seed =
+genGame : Int -> Random.Seed -> Win -> ( Model, Cmd Msg )
+genGame highScore seed win =
     let
         ( round, nextSeed ) =
-            genRound 1 0 seed
+            genRound win 1 0 seed
     in
-        ( Model (Running round) 3 1 nextSeed highScore, Cmd.none )
+        ( Model (Running round) 3 1 nextSeed highScore win, Cmd.none )
 
 
-genRound : Int -> Score -> Random.Seed -> ( Round, Random.Seed )
-genRound difficulty score seed =
+genRound : Win -> Int -> Score -> Random.Seed -> ( Round, Random.Seed )
+genRound win difficulty score seed =
     let
         ( rocks, nextSeed ) =
-            genRocks difficulty seed
+            genRocks win difficulty seed
     in
         ( { tick = 0
-          , ship = startingShip
+          , ship = (startingShip win)
           , bullets = []
           , rocks = rocks
           , score = score
@@ -165,32 +178,32 @@ genRound difficulty score seed =
         )
 
 
-genRockPos : Random.Seed -> ( Point, Random.Seed )
-genRockPos seed =
+genRockPos : Win -> Random.Seed -> ( Point, Random.Seed )
+genRockPos win seed =
     let
         ( left, ls ) =
             Random.step Random.bool seed
 
         ( px, xs ) =
-            Random.step (Random.int 0 (screenWidth // 3)) ls
+            Random.step (Random.int 0 (win.maxX // 3)) ls
 
         x =
             if left then
                 px
             else
-                screenWidth - px
+                win.maxX - px
 
         ( top, ts ) =
             Random.step Random.bool xs
 
         ( py, ys ) =
-            Random.step (Random.int 0 (screenHeight // 3)) ts
+            Random.step (Random.int 0 (win.maxY // 3)) ts
 
         y =
             if top then
                 py
             else
-                screenHeight - py
+                win.maxY - py
     in
         ( { x = x, y = y }, ys )
 
@@ -210,11 +223,11 @@ genVelocity difficulty seed =
         ( ( rad * inc, theta ), ts )
 
 
-genRock : Int -> Int -> ( List Rock, Random.Seed ) -> ( List Rock, Random.Seed )
-genRock _ difficulty ( rocks, seed ) =
+genRock : Win -> Int -> Int -> ( List Rock, Random.Seed ) -> ( List Rock, Random.Seed )
+genRock win _ difficulty ( rocks, seed ) =
     let
         ( position, seed1 ) =
-            genRockPos seed
+            genRockPos win seed
 
         ( velocity, seed2 ) =
             genVelocity difficulty seed1
@@ -225,9 +238,9 @@ genRock _ difficulty ( rocks, seed ) =
         ( (Rock position velocity 64 spin 0) :: rocks, seed3 )
 
 
-genRocks : Int -> Random.Seed -> ( List Rock, Random.Seed )
-genRocks difficulty seed =
-    List.foldl (genRock difficulty) ( [], seed ) (List.range 0 5)
+genRocks : Win -> Int -> Random.Seed -> ( List Rock, Random.Seed )
+genRocks win difficulty seed =
+    List.foldl (genRock win difficulty) ( [], seed ) (List.range 0 5)
 
 
 spinDir : Random.Seed -> ( Int, Random.Seed )
@@ -239,6 +252,7 @@ type Msg
     = Tick Time.Time
     | Action Act
     | NewRound
+    | Resize Window.Size
 
 
 type Act

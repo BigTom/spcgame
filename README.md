@@ -27,5 +27,6 @@ elm-live:
 
 It should automatically open a browser session (**Only tested with Chrome on a Mac**).  
 
-If it doesn't then open a browser and point it at: [http://localhost:8000](http://localhost:8000)
+If it doesn't then open a browser and point it at load: [http://localhost:8000](http://localhost:8000)
+
 It will take a while to start because it will initially download the elm-package dependencies and compile the code.

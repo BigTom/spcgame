@@ -9,8 +9,12 @@
     <div id="game"></div>
     <script>
       var node = document.getElementById('game');
-      seed = Math.floor(Math.random() * Number.MAX_VALUE)
-      var app = Elm.App.embed(node, { "randSeed": seed } );
+      var seed = Math.floor(Math.random() * Number.MAX_VALUE);
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      var app = Elm.App.embed(node, { "randSeed": seed,
+                                      "width": width,
+                                      "height": height} );
     </script>
   </body>
 </html>

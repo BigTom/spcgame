@@ -4,6 +4,7 @@ import Model
 import Keyboard
 import Time
 import Char
+import Window
 
 
 subscriptions : Model.Model -> Sub Model.Msg
@@ -12,6 +13,7 @@ subscriptions model =
         [ Keyboard.downs (downs model)
         , Keyboard.ups (ups model)
         , tickSubscription model
+        , Window.resizes Model.Resize
         ]
 
 
@@ -19,7 +21,7 @@ downs : Model.Model -> Int -> Model.Msg
 downs model keyCode =
     let
         char =
-            Char.fromCode keyCode
+            (Debug.log "down: " Char.fromCode keyCode)
     in
         case char of
             'W' ->

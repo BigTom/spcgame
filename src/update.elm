@@ -1,6 +1,7 @@
 module Update exposing (..)
 
 import Model
+import Window
 
 
 update : Model.Msg -> Model.Model -> ( Model.Model, Cmd Model.Msg )
@@ -15,7 +16,7 @@ update msg model =
                     ( model, Cmd.none )
 
         Model.NewRound ->
-            Model.genGame model.highScore model.seed
+            Model.genGame model.highScore model.seed model.win
 
         Model.Action act ->
             case model.state of
@@ -24,6 +25,9 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        Model.Resize newWin ->
+            onResize model newWin
 
 
 onShipAction : Model.Model -> Model.Round -> Model.Act -> Model.Model
@@ -67,6 +71,25 @@ onShipAction model round act =
         { model | state = Model.Running newRound }
 
 
+onResize : Model.Model -> Window.Size -> ( Model.Model, Cmd Model.Msg )
+onResize model { width, height } =
+    let
+        newWin =
+            Debug.log "resize: "
+                (Model.Win
+                    width
+                    (height - 100)
+                    (width // 2)
+                    ((height - 100) // 2)
+                )
+    in
+        ( { model
+            | win = newWin
+          }
+        , Cmd.none
+        )
+
+
 lostLife : Model.Model -> Model.Round -> Model.Model
 lostLife model currentRound =
     if model.lives > 1 then
@@ -75,7 +98,7 @@ lostLife model currentRound =
                 1
 
             ( newRound, nextSeed ) =
-                Model.genRound difficulty currentRound.score model.seed
+                Model.genRound model.win difficulty currentRound.score model.seed
         in
             { model
                 | state = Model.Running newRound
@@ -101,7 +124,7 @@ wonLevel model currentRound =
             model.difficulty + 1
 
         ( newRound, nextSeed ) =
-            Model.genRound difficulty currentRound.score model.seed
+            Model.genRound model.win difficulty currentRound.score model.seed
     in
         { model
             | state = Model.Running newRound
@@ -114,15 +137,15 @@ onTick : Model.Model -> Model.Round -> ( Model.Model, Cmd Model.Msg )
 onTick model game =
     let
         ( newBullets, remainingBullets ) =
-            updateBullets game
+            updateBullets model.win game
 
         ( newNewBullets, newRocks, score ) =
-            bulletHits newBullets (updateRocks game.rocks)
+            bulletHits newBullets (updateRocks model.win game.rocks)
 
         newRound =
             { game
                 | tick = game.tick + 1
-                , ship = updateShip game.ship remainingBullets
+                , ship = updateShip model.win game.ship remainingBullets
                 , bullets = newNewBullets
                 , rocks = newRocks
                 , score = game.score + score
@@ -147,13 +170,13 @@ v2p velocity =
         (fromPolar velocity)
 
 
-screenWrap : Model.Point -> Model.Point
-screenWrap coord =
-    { x = coord.x % Model.screenWidth, y = coord.y % Model.screenHeight }
+screenWrap : Model.Win -> Model.Point -> Model.Point
+screenWrap win coord =
+    { x = coord.x % win.maxX, y = coord.y % win.maxY }
 
 
-updateShip : Model.Ship -> Int -> Model.Ship
-updateShip ship remainingBullets =
+updateShip : Model.Win -> Model.Ship -> Int -> Model.Ship
+updateShip win ship remainingBullets =
     let
         newVelocity =
             if ship.accelerating then
@@ -173,7 +196,7 @@ updateShip ship remainingBullets =
                     ship.heading
     in
         { ship
-            | pos = move ship.pos ship.velocity
+            | pos = move win ship.pos ship.velocity
             , velocity = newVelocity
             , heading = newHeading
             , bullets = remainingBullets
@@ -192,27 +215,27 @@ accelerateShip { velocity, heading } acc =
         toPolar ( vx + dx, vy + dy )
 
 
-updateRocks : List Model.Rock -> List Model.Rock
-updateRocks rocks =
-    List.map updateRock rocks
+updateRocks : Model.Win -> List Model.Rock -> List Model.Rock
+updateRocks win rocks =
+    List.map (updateRock win) rocks
 
 
-move : Model.Point -> Model.Velocity -> Model.Point
-move { x, y } v =
+move : Model.Win -> Model.Point -> Model.Velocity -> Model.Point
+move win { x, y } v =
     let
         d =
             v2p v
     in
-        { x = (x + d.x), y = (y + d.y) } |> screenWrap
+        { x = (x + d.x), y = (y + d.y) } |> (screenWrap win)
 
 
-updateRock : Model.Rock -> Model.Rock
-updateRock rock =
-    { rock | pos = move rock.pos rock.velocity, angle = rock.angle + rock.rotation }
+updateRock : Model.Win -> Model.Rock -> Model.Rock
+updateRock win rock =
+    { rock | pos = move win rock.pos rock.velocity, angle = rock.angle + rock.rotation }
 
 
-updateBullets : Model.Round -> ( List Model.Bullet, Int )
-updateBullets game =
+updateBullets : Model.Win -> Model.Round -> ( List Model.Bullet, Int )
+updateBullets win game =
     let
         ( newBullets, remaingBullets ) =
             if game.ship.firing then
@@ -225,7 +248,7 @@ updateBullets game =
     in
         ( newBullets
             |> List.filter (liveBullet game.tick)
-            |> List.map updateBullet
+            |> List.map (updateBullet win)
         , remaingBullets
         )
 
@@ -235,9 +258,9 @@ liveBullet tick { fired } =
     tick < fired + 30
 
 
-updateBullet : Model.Bullet -> Model.Bullet
-updateBullet bullet =
-    { bullet | pos = move bullet.pos bullet.velocity }
+updateBullet : Model.Win -> Model.Bullet -> Model.Bullet
+updateBullet win bullet =
+    { bullet | pos = move win bullet.pos bullet.velocity }
 
 
 fireBullets : Model.Round -> List Model.Bullet

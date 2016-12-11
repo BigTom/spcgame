@@ -7,7 +7,7 @@
         "src/",
         "tests/"
     ],
-    "exposed-modules": [], 
+    "exposed-modules": [],
     "dependencies": {
         "elm-community/elm-test": "3.0.0 <= v < 4.0.0",
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
@@ -16,6 +16,7 @@
         "elm-lang/mouse": "1.0.1 <= v < 2.0.0",
         "elm-lang/svg": "2.0.0 <= v < 3.0.0",
         "elm-lang/virtual-dom": "2.0.0 <= v < 3.0.0",
+        "elm-lang/window": "1.0.1 <= v < 2.0.0",
         "krisajenkins/elm-exts": "26.1.0 <= v < 27.0.0",
         "rtfeldman/node-test-runner": "3.0.0 <= v < 4.0.0"
     },
