@@ -18,16 +18,6 @@ stdMaxY =
     600
 
 
-stdMidX : Int
-stdMidX =
-    (stdMaxX // 2)
-
-
-stdMidY : Int
-stdMidY =
-    (stdMaxY // 2)
-
-
 initialHeading : Int
 initialHeading =
     270
@@ -61,7 +51,7 @@ type AppState
     | GameOver Int
 
 
-type alias Win =
+type alias GameSpace =
     { maxX : Int
     , maxY : Int
     , midX : Int
@@ -69,10 +59,22 @@ type alias Win =
     }
 
 
-type alias Ship =
+type alias NavStat =
     { pos : Point
     , velocity : Velocity
+    , radius : Int
     , heading : Int
+    }
+
+
+
+{--
+
+--}
+
+
+type alias Ship =
+    { navStat : NavStat
     , accelerating : Bool
     , rotating : Rotating
     , firing : Bool
@@ -82,17 +84,13 @@ type alias Ship =
 
 type alias Bullet =
     { fired : Int
-    , pos : Point
-    , velocity : Velocity
+    , navStat : NavStat
     }
 
 
 type alias Rock =
-    { pos : Point
-    , velocity : Velocity
-    , radius : Int
+    { navStat : NavStat
     , rotation : Int
-    , angle : Int
     }
 
 
@@ -111,7 +109,7 @@ type alias Model =
     , difficulty : Int
     , seed : Random.Seed
     , highScore : Int
-    , win : Win
+    , space : GameSpace
     }
 
 
@@ -126,8 +124,7 @@ type alias Flags =
 -- INIT
 
 
-{-|
-init creates a model
+{-| init creates a model
 -}
 init : Flags -> ( Model, Cmd Msg )
 init { randSeed, width, height } =
@@ -136,16 +133,19 @@ init { randSeed, width, height } =
         1
         (Random.initialSeed randSeed)
         0
-        (Win width (height - 100) (width // 2) ((height - 100) // 2))
+        (GameSpace width (height - 100) (width // 2) ((height - 100) // 2))
     , Cmd.none
     )
 
 
-startingShip : Win -> Ship
+startingShip : GameSpace -> Ship
 startingShip { midX, midY } =
-    { pos = { x = midX, y = midY }
-    , velocity = ( 0, degrees (toFloat initialHeading) )
-    , heading = initialHeading
+    { navStat =
+        NavStat
+            { x = midX, y = midY }
+            ( 0, degrees (toFloat initialHeading) )
+            15
+            initialHeading
     , rotating = Not
     , accelerating = False
     , firing = False
@@ -153,7 +153,7 @@ startingShip { midX, midY } =
     }
 
 
-genGame : Int -> Random.Seed -> Win -> ( Model, Cmd Msg )
+genGame : Int -> Random.Seed -> GameSpace -> ( Model, Cmd Msg )
 genGame highScore seed win =
     let
         ( round, nextSeed ) =
@@ -162,7 +162,7 @@ genGame highScore seed win =
         ( Model (Running round) 3 1 nextSeed highScore win, Cmd.none )
 
 
-genRound : Win -> Int -> Score -> Random.Seed -> ( Round, Random.Seed )
+genRound : GameSpace -> Int -> Score -> Random.Seed -> ( Round, Random.Seed )
 genRound win difficulty score seed =
     let
         ( rocks, nextSeed ) =
@@ -178,7 +178,7 @@ genRound win difficulty score seed =
         )
 
 
-genRockPos : Win -> Random.Seed -> ( Point, Random.Seed )
+genRockPos : GameSpace -> Random.Seed -> ( Point, Random.Seed )
 genRockPos win seed =
     let
         ( left, ls ) =
@@ -223,7 +223,7 @@ genVelocity difficulty seed =
         ( ( rad * inc, theta ), ts )
 
 
-genRock : Win -> Int -> Int -> ( List Rock, Random.Seed ) -> ( List Rock, Random.Seed )
+genRock : GameSpace -> Int -> Int -> ( List Rock, Random.Seed ) -> ( List Rock, Random.Seed )
 genRock win _ difficulty ( rocks, seed ) =
     let
         ( position, seed1 ) =
@@ -235,10 +235,10 @@ genRock win _ difficulty ( rocks, seed ) =
         ( spin, seed3 ) =
             spinDir seed2
     in
-        ( (Rock position velocity 64 spin 0) :: rocks, seed3 )
+        ( (Rock (NavStat position velocity 64 0) spin) :: rocks, seed3 )
 
 
-genRocks : Win -> Int -> Random.Seed -> ( List Rock, Random.Seed )
+genRocks : GameSpace -> Int -> Random.Seed -> ( List Rock, Random.Seed )
 genRocks win difficulty seed =
     List.foldl (genRock win difficulty) ( [], seed ) (List.range 0 5)
 

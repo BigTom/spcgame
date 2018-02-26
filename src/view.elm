@@ -30,19 +30,19 @@ view model =
     case model.state of
         Model.Running currentRound ->
             Html.div []
-                [ runningScene model.win currentRound model.lives
-                , controls model.win
+                [ runningScene model.space currentRound model.lives
+                , controls model.space
                   -- , Html.div [ class "debug" ] [ Html.text (toString currentRound.ship) ]
                 ]
 
         Model.Start ->
-            instructionScreen (startScreen model.win)
+            instructionScreen (startScreen model.space)
 
         Model.GameOver score ->
-            instructionScreen ((endScreen model.win) score model.highScore)
+            instructionScreen ((endScreen model.space) score model.highScore)
 
 
-controls : Model.Win -> Html.Html Model.Msg
+controls : Model.GameSpace -> Html.Html Model.Msg
 controls win =
     Html.div []
         [ Html.div
@@ -95,15 +95,15 @@ instructionScreen screen =
         ]
 
 
-startScreen : Model.Win -> Html.Html Model.Msg
-startScreen win =
+startScreen : Model.GameSpace -> Html.Html Model.Msg
+startScreen space =
     let
         { maxX, maxY, midX, midY } =
-            win
+            space
     in
         Svg.svg
             (svgArea maxX maxY)
-            ([ drawBackground win ]
+            ([ drawBackground space ]
                 ++ drawMsg "Asteroids!" (Model.Point midX (midY - 60)) 60
                 ++ drawMsg "Press 'B' to start" (Model.Point midX (midY + 32)) 16
                 ++ drawMsg "A - rotate anti-clockwise" (Model.Point midX (midY + 47)) 10
@@ -113,7 +113,7 @@ startScreen win =
             )
 
 
-endScreen : Model.Win -> Int -> Int -> Html.Html Model.Msg
+endScreen : Model.GameSpace -> Int -> Int -> Html.Html Model.Msg
 endScreen win score highScore =
     let
         { maxX, maxY, midX, midY } =
@@ -129,7 +129,7 @@ endScreen win score highScore =
             )
 
 
-runningScene : Model.Win -> Model.Round -> Int -> Html.Html Model.Msg
+runningScene : Model.GameSpace -> Model.Round -> Int -> Html.Html Model.Msg
 runningScene win currentRound lives =
     Svg.svg
         (svgArea win.maxX win.maxY)
@@ -176,7 +176,7 @@ drawMsg msg pos size =
         ]
 
 
-drawBackground : Model.Win -> Svg Model.Msg
+drawBackground : Model.GameSpace -> Svg Model.Msg
 drawBackground { maxX, maxY } =
     Svg.rect
         [ width (toString maxX)
@@ -189,8 +189,8 @@ drawBackground { maxX, maxY } =
 drawBullet : Model.Bullet -> Svg Model.Msg
 drawBullet drawBullet =
     Svg.circle
-        [ cx (toString drawBullet.pos.x)
-        , cy (toString drawBullet.pos.y)
+        [ cx (toString drawBullet.navStat.pos.x)
+        , cy (toString drawBullet.navStat.pos.y)
         , r "1"
         , stroke "red"
         , fill "red"
@@ -229,13 +229,13 @@ drawObject pos scale angle rawPts strokeColor =
 
 
 drawRock : Model.Rock -> Svg Model.Msg
-drawRock { pos, radius, angle } =
-    drawObject pos radius angle rockPts "blue"
+drawRock { navStat } =
+    drawObject navStat.pos navStat.radius navStat.heading rockPts "blue"
 
 
 drawShip : Model.Ship -> Svg Model.Msg
-drawShip ship =
-    drawObject ship.pos 10 ship.heading shipPts "white"
+drawShip { navStat } =
+    drawObject navStat.pos 10 navStat.heading shipPts "white"
 
 
 drawLife : Model.Point -> Svg Model.Msg
